@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
+from agripipe.indices import compute_agronomic_indices
 from agripipe.utils.logging_setup import get_logger
 
 logger = get_logger(__name__)

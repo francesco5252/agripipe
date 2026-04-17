@@ -54,7 +54,7 @@ def _generate_plots(df_before: pd.DataFrame, df_after: pd.DataFrame) -> str:
         data_cmp = pd.concat([
             df_before[[col]].assign(Stato="Grezzo (Prima)"),
             df_after[[col]].assign(Stato="Pulito (Dopo)")
-        ])
+        ], ignore_index=True)
         sns.boxplot(data=data_cmp, x="Stato", y=col, ax=ax1, width=0.5)
         ax1.set_title(f"Outlier in '{col}'")
         
