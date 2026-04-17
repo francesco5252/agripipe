@@ -33,12 +33,35 @@ class CleanerConfig:
     knowledge_path: str = "configs/agri_knowledge.yaml"
 
 
+@dataclass
+class CleanerDiagnostics:
+    """Conteggi raccolti durante la pulizia per la Sustainability Score Card.
+
+    Popolato da ``AgriCleaner.clean()`` e consumato da
+    ``sustainability.compute_scorecard`` e ``metadata.build_metadata``.
+    Non influenza il comportamento del cleaner: è solo esposizione dati.
+    """
+
+    total_rows: int = 0
+    imputation_strategy_used: str = ""
+    values_imputed: int = 0
+    outliers_removed: int = 0
+    out_of_bounds_removed: int = 0
+    nitrogen_violations: int = 0
+    peronospora_events: int = 0
+    irrigation_inefficient: int = 0
+    soil_organic_low: int = 0
+    heat_stress_flowering: int = 0
+    late_frost_events: int = 0
+
+
 class AgriCleaner:
     """Pipeline di pulizia configurabile per dati agronomici."""
 
     def __init__(self, config: CleanerConfig):
         self.config = config
         self.knowledge = self._load_knowledge()
+        self.diagnostics = CleanerDiagnostics()
 
     def _load_knowledge(self) -> dict:
         path = Path(self.config.knowledge_path)
@@ -59,6 +82,7 @@ class AgriCleaner:
 
     def clean(self, df: pd.DataFrame) -> pd.DataFrame:
         """Applica l'intera pipeline di pulizia e calcola gli indici agronomici."""
+        self.diagnostics = CleanerDiagnostics(total_rows=len(df))
         logger.info("Avvio pulizia intelligente su %d righe", len(df))
         df = df.copy()
         df = self._coerce_types(df)
