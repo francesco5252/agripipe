@@ -1,61 +1,113 @@
 # 🌱 AgriPipe
 
- Data pipeline salva-tempo per dati agronomici: da Excel sporco a tensor PyTorch pronti per il ML.
+[![CI](https://github.com/yourusername/agripipe/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/agripipe/actions/workflows/ci.yml)
+[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Perché
+**AgriPipe** è una pipeline ETL (Extract, Transform, Load) specializzata per il settore agronomico. È progettata per risolvere il problema comune dei dati "sporchi" in formato Excel, convertendoli in tensori PyTorch pronti per l'addestramento di modelli di Machine Learning.
 
-Chi lavora su ML in agritech passa troppo tempo a pulire Excel malformati, gestire NaN e convertire dataframe in tensor. **AgriPipe** automatizza tutto in un solo comando e riduce al minimo i crash a runtime.
+## 🚀 Funzionalità Chiave
 
-## Pipeline
+- **Validazione Rigorosa**: Utilizzo di **Pydantic** per garantire che i dati carichi rispettino lo schema atteso.
+- **Pulizia Intelligente**: Gestione automatica di outlier (IQR, Z-Score), valori mancanti e violazioni dei limiti fisici (es. pH o umidità fuori range).
+- **ML-Ready**: Trasformazione immediata in `torch.Tensor` con scaling (Standard/MinMax) e Label Encoding persistibili.
+- **Reporting**: Generazione automatica di report HTML per confrontare i dati grezzi con quelli puliti.
+- **Configurazione YAML**: Tutta la logica di pulizia è definita in file di configurazione separati dal codice.
+- **Logging Professionale**: Supporto per log su console e su file con livelli di dettaglio configurabili.
 
-```
-Excel grezzo ──► Loader ──► Cleaner ──► Tensorizer ──► torch.Tensor
-                   │           │            │
-                 validazione  outlier    normalize
-                   schema     missing    encode
-                              dedup      split
-```
-
-## Quickstart
+## 🛠 Installazione
 
 ```bash
-pip install -e .
+# Clonazione repository
+git clone https://github.com/yourusername/agripipe.git
+cd agripipe
 
-# 1. Genera un Excel sporco di esempio (se non ne hai uno tuo)
-agripipe generate --output data/sample/synthetic_dirty.xlsx --rows 500
-
-# 2. Pipeline completa con report HTML di qualità
-agripipe run -i data/sample/synthetic_dirty.xlsx -o out/tensors.pt -r out/report.html
-
-# 3. Solo report di qualità, senza tensor
-agripipe report -i data/sample/synthetic_dirty.xlsx -o out/report.html
+# Installazione in modalità sviluppo
+pip install -e ".[dev]"
 ```
 
-Vedi anche `notebooks/demo.ipynb` per un tour end-to-end interattivo.
+## 💻 Utilizzo CLI
 
-In Python:
+AgriPipe offre un'interfaccia a riga di comando potente e intuitiva.
+
+### 1. Eseguire la Pipeline Completa
+```bash
+agripipe run --input data/raw.xlsx --output out/tensors.pt --report out/report.html
+```
+
+### 2. Validare la Configurazione
+```bash
+agripipe check --config configs/default.yaml
+```
+
+### 3. Generare Dati Sintetici (per Test)
+```bash
+agripipe generate --rows 1000 --output data/test_data.xlsx
+```
+
+### 4. Opzioni Globali
+- `--log-file path/to/log.txt`: Salva l'esecuzione su file.
+- `--verbose / -v`: Abilita i log di debug.
+
+## 🐍 Utilizzo Python API
 
 ```python
-from agripipe import load_raw, AgriCleaner, AgriDataset
+from agripipe.loader import load_raw
+from agripipe.cleaner import AgriCleaner
+from agripipe.dataset import AgriDataset
 
-df = load_raw("data/raw.xlsx")
-df = AgriCleaner.from_yaml("configs/default.yaml").clean(df)
-ds = AgriDataset(df, target="yield")
+# 1. Caricamento
+df = load_raw("dati_campo.xlsx")
+
+# 2. Pulizia
+cleaner = AgriCleaner.from_yaml("configs/default.yaml")
+df_clean = cleaner.clean(df)
+
+# 3. Dataset PyTorch
+dataset = AgriDataset(
+    df_clean, 
+    numeric_columns=["temp", "humidity"], 
+    target="yield"
+)
+
+# 4. Pronto per il DataLoader
+from torch.utils.data import DataLoader
+loader = DataLoader(dataset, batch_size=32, shuffle=True)
 ```
 
-## Struttura
+## 🏗 Architettura
 
-```
-src/agripipe/     # codice core
-tests/            # unit test pytest
-configs/          # YAML di configurazione pipeline
-data/sample/      # Excel di esempio per test end-to-end
+```mermaid
+graph TD
+    A[Excel/CSV] --> B[Loader: Pydantic Validation]
+    B --> C[Cleaner: Outliers & NaNs]
+    C --> D[Report: HTML Quality Check]
+    C --> E[Tensorizer: Scaling & Encoding]
+    E --> F[PyTorch Tensors]
 ```
 
-## Sviluppo
+## 📖 Documentazione
+
+La documentazione completa, inclusi i riferimenti API e la guida alla configurazione, è disponibile localmente:
 
 ```bash
-pip install -e ".[dev]"
-pre-commit install
-pytest
+mkdocs serve
 ```
+Poi visita `http://127.0.0.1:8000`.
+
+## 🧪 Sviluppo e Test
+
+Il progetto segue standard di qualità elevati con una copertura dei test superiore all'80%.
+
+```bash
+# Esegui tutti i test (inclusi i test di integrazione E2E)
+pytest
+
+# Controllo formattazione
+ruff check src
+black --check src
+```
+
+## 📄 Licenza
+
+Distribuito sotto licenza MIT. Vedere `LICENSE` per ulteriori informazioni.
