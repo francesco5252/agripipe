@@ -57,6 +57,7 @@ def generate_dirty_excel(
 
 # ---------- step privati ----------
 
+
 def _base_dataset(cfg: SynthConfig, rng: np.random.Generator) -> pd.DataFrame:
     fields = [f"F{i+1}" for i in range(cfg.n_fields)]
     crops = ["wheat", "corn", "soy", "barley"]
