@@ -1,6 +1,6 @@
 # 🌱 AgriPipe
 
-> Data pipeline salva-tempo per dati agronomici: da Excel sporco a tensor PyTorch pronti per il ML.
+ Data pipeline salva-tempo per dati agronomici: da Excel sporco a tensor PyTorch pronti per il ML.
 
 [![CI](https://github.com/YOUR_USER/agripipe/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USER/agripipe/actions)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/)
