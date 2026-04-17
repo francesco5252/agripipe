@@ -1,0 +1,38 @@
+# Configurazione pipeline di pulizia per dati agronomici.
+# Adatta i nomi delle colonne al tuo schema reale.
+
+numeric_columns:
+  - temp
+  - humidity
+  - ph
+  - yield
+  - rainfall
+
+categorical_columns:
+  - field_id
+  - crop_type
+
+date_columns:
+  - date
+
+dedup_keys:
+  - field_id
+  - date
+
+# Strategia per imputare NaN nelle colonne numeriche:
+# "mean" | "median" | "ffill" | "drop"
+missing_strategy: median
+
+# Drop colonne con più di questa % di NaN
+missing_drop_threshold: 0.5
+
+# Rilevazione outlier: "iqr" | "zscore" | "none"
+outlier_method: iqr
+outlier_iqr_multiplier: 1.5
+
+# Limiti fisici validi per variabile: valori fuori range → NaN
+physical_bounds:
+  ph: [0.0, 14.0]
+  humidity: [0.0, 100.0]
+  temp: [-30.0, 60.0]
+  rainfall: [0.0, 2000.0]
