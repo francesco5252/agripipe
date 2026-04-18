@@ -1,50 +1,50 @@
 site_name: "AgriPipe"
-site_description: "AgriPipe: Data pipeline per dati agronomici Excel tensor PyTorch"
+site_description: "AgriPipe data pipeline"
 site_author: "Francesco"
 repo_url: "https://github.com/francesco5252/agripipe"
 
 theme:
-  name: material
+  name: "material"
   palette:
     - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: green
-      accent: light green
+      scheme: "default"
+      primary: "green"
+      accent: "light green"
       toggle:
-        icon: material/brightness-7
-        name: Passa al tema scuro
+        icon: "material/brightness-7"
+        name: "Passa al tema scuro"
     - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: green
-      accent: light green
+      scheme: "slate"
+      primary: "green"
+      accent: "light green"
       toggle:
-        icon: material/brightness-4
-        name: Passa al tema chiaro
+        icon: "material/brightness-4"
+        name: "Passa al tema chiaro"
   features:
-    - navigation.tabs
-    - navigation.sections
-    - navigation.top
-    - search.suggest
-    - search.highlight
-    - content.code.copy
+    - "navigation.tabs"
+    - "navigation.sections"
+    - "navigation.top"
+    - "search.suggest"
+    - "search.highlight"
+    - "content.code.copy"
 
 plugins:
-  - search
-  - mkdocstrings:
+  - "search"
+  - "mkdocstrings":
       handlers:
         python:
-          paths: [src]
+          paths: ["src"]
 
 nav:
-  - Home: index.md
-  - Guida Utente:
-      - Quickstart: getting-started.md
-      - Configurazione Pipeline: configuration.md
-  - Riferimento API:
-      - Loader: api/loader.md
-      - Cleaner: api/cleaner.md
-      - Tensorizer: api/tensorizer.md
-  - Superpowers:
-      - Design Spec: superpowers/specs/2026-04-17-agripipe-pro-upgrade-design.md
-      - Upgrade Plan: superpowers/plans/2026-04-18-agripipe-pro-upgrade.md
-  - Sviluppo: contributing.md
+  - "Home": "index.md"
+  - "Guida Utente":
+    - "Quickstart": "getting-started.md"
+    - "Configurazione Pipeline": "configuration.md"
+  - "Riferimento API":
+    - "Loader": "api/loader.md"
+    - "Cleaner": "api/cleaner.md"
+    - "Tensorizer": "api/tensorizer.md"
+  - "Superpowers":
+    - "Design Spec": "superpowers/specs/2026-04-17-agripipe-pro-upgrade-design.md"
+    - "Upgrade Plan": "superpowers/plans/2026-04-18-agripipe-pro-upgrade.md"
+  - "Sviluppo": "contributing.md"
