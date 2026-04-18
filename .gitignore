@@ -39,3 +39,14 @@ data/*.xlsx
 .DS_Store
 Thumbs.db
 .claude/
+
+# MkDocs
+site/
+
+# Linting / Formatting
+.ruff_cache/
+
+# Local Environment / Secrets
+.env
+.env.local
+*.log
