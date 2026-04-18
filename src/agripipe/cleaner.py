@@ -15,7 +15,7 @@ from agripipe.utils.logging_setup import get_logger
 
 logger = get_logger(__name__)
 
-ImputationStrategy = Literal["mean", "median", "ffill", "drop"]
+ImputationStrategy = Literal["mean", "median", "ffill", "drop", "time"]
 
 
 @dataclass
@@ -253,13 +253,82 @@ class AgriCleaner:
         return df
 
     def _impute_missing(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Imputa i valori mancanti secondo la strategia configurata.
+
+        Per ``strategy="time"`` richiede una colonna ``date``. Se manca, effettua
+        fallback a ``median`` con log di warning (scelta di design D1: robustezza
+        sopra la rigorosità).
+        """
         strat = self.config.missing_strategy
-        if strat == "drop": return df.dropna()
+
+        if strat == "time":
+            date_col = next((c for c in ["date", "data"] if c in df.columns), None)
+            if not date_col or len(df) < 3:
+                logger.warning(
+                    "Strategia 'time' richiede colonna date e >=3 righe; "
+                    "fallback automatico a 'median'."
+                )
+                strat = "median"
+                self.diagnostics.imputation_strategy_used = "median"
+            else:
+                return self._impute_time(df, date_col)
+
+        self.diagnostics.imputation_strategy_used = strat
+
+        if strat == "drop":
+            return df.dropna()
+
+        before_na = int(df[self.config.numeric_columns].isna().sum().sum()) \
+            if self.config.numeric_columns else 0
         for col in self.config.numeric_columns:
             if col not in df.columns: continue
             if strat == "mean": df[col] = df[col].fillna(df[col].mean())
             elif strat == "median": df[col] = df[col].fillna(df[col].median())
             elif strat == "ffill": df[col] = df[col].ffill().bfill()
+        after_na = int(df[self.config.numeric_columns].isna().sum().sum()) \
+            if self.config.numeric_columns else 0
+        self.diagnostics.values_imputed += (before_na - after_na)
+        return df
+
+
+    def _impute_time(self, df: pd.DataFrame, date_col: str) -> pd.DataFrame:
+        """Interpolazione temporale per-campo.
+
+        Ordina per (field, date), interpola ``method="time"`` con ``limit=3``,
+        chiude i bordi con ``ffill().bfill()``. Raggruppa per ``field_id`` per
+        non mischiare campi diversi.
+        """
+        field_col = next((c for c in ["field_id", "campo", "lotto"] if c in df.columns), None)
+
+        df = df.copy()
+        df[date_col] = pd.to_datetime(df[date_col])
+        sort_cols = [field_col, date_col] if field_col else [date_col]
+        df = df.sort_values(sort_cols).reset_index(drop=True)
+
+        before_na = int(df[self.config.numeric_columns].isna().sum().sum())
+
+        original_index = df.index
+        df_indexed = df.set_index(date_col)
+
+        for col in self.config.numeric_columns:
+            if col not in df_indexed.columns: continue
+            if field_col:
+                df_indexed[col] = df_indexed.groupby(field_col)[col].transform(
+                    lambda s: s.interpolate(method="time", limit=3).ffill().bfill()
+                )
+            else:
+                df_indexed[col] = df_indexed[col].interpolate(method="time", limit=3).ffill().bfill()
+
+        df = df_indexed.reset_index()
+        df.index = original_index
+
+        after_na = int(df[self.config.numeric_columns].isna().sum().sum())
+        self.diagnostics.values_imputed += (before_na - after_na)
+        self.diagnostics.imputation_strategy_used = "time"
+
+        if not field_col:
+            logger.warning("Imputazione 'time' senza field_id: interpolazione globale.")
+
         return df
 
     def _deduplicate(self, df: pd.DataFrame) -> pd.DataFrame:
