@@ -26,7 +26,20 @@ class TensorBundle:
 
 
 class Tensorizer:
-    """Normalizza numerici, codifica categoriche, converte in tensor."""
+    """Converte un DataFrame pulito in tensor PyTorch normalizzati.
+
+    Normalizza le colonne numeriche con ``StandardScaler`` (media 0, dev std 1)
+    e codifica le colonne categoriche con ``LabelEncoder``. Serializzabile per
+    inferenza futura.
+
+    Attributes:
+        numeric_columns: Colonne continue da normalizzare.
+        categorical_columns: Colonne categoriche da codificare.
+        target: Colonna target (opzionale, esclusa dalle features).
+        target_dtype: Tipo del tensor target (``"float32"`` | ``"long"``).
+        scaler: ``StandardScaler`` fit sui numeric_columns.
+        encoders: Dict ``{col_name: LabelEncoder}`` per le categoriche.
+    """
 
     def __init__(
         self,
@@ -62,8 +75,19 @@ class Tensorizer:
         )
 
     def transform(self, df: pd.DataFrame) -> TensorBundle:
-        if not self._fitted:
-            raise RuntimeError("Chiamare fit_transform() o _fit() prima di transform().")
+        """Applica la trasformazione già fit a un nuovo DataFrame.
+
+        Args:
+            df: DataFrame con le stesse colonne usate in ``fit_transform``.
+
+        Returns:
+            ``TensorBundle`` con ``features``, ``target`` (o None) e
+            ``feature_names``.
+
+        Raises:
+            RuntimeError: Se ``_fitted`` non è ancora stato chiamato.
+            ValueError: Se il tensor risultante contiene NaN/Inf.
+        """
 
         parts: list[np.ndarray] = []
         names: list[str] = []

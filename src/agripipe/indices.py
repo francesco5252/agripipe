@@ -5,7 +5,30 @@ import pandas as pd
 
 
 def compute_agronomic_indices(df: pd.DataFrame, knowledge: dict) -> pd.DataFrame:
-    """Calcola indici arricchiti per il Machine Learning (GDD, Huglin, Stress Idrico, Sostenibilità)."""
+    """Arricchisce il DataFrame con indici agronomici per il Machine Learning.
+
+    Calcola (dove le colonne sono presenti):
+        - **GDD daily/accumulated**: Gradi Giorno rispetto a ``t_base`` per coltura.
+        - **Huglin index**: Indice qualità vitivinicola (solo vite).
+        - **drought_7d_score**: Bilancio idrico mobile a 7 giorni.
+        - **n_efficiency**: Nitrogen Use Efficiency (yield / N).
+
+    Args:
+        df: DataFrame pulito. Colonne richieste: ``crop_type``/``crop``,
+            ``temp``/``temperatura``. Opzionali: ``date``, ``field_id``,
+            ``rainfall``, ``yield``, ``n``.
+        knowledge: Dizionario caricato da ``agri_knowledge.yaml``. La chiave
+            ``crops`` contiene ``t_base`` per coltura.
+
+    Returns:
+        DataFrame con le colonne originali + gli indici calcolati. Se mancano
+        colonne essenziali (crop + temp) restituisce il df invariato.
+
+    Example:
+        >>> df_with_indices = compute_agronomic_indices(df, knowledge)
+        >>> "gdd_accumulated" in df_with_indices.columns
+        True
+    """
     df = df.copy()
 
     # Identifica colonne necessarie
