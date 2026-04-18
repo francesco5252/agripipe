@@ -57,6 +57,23 @@ class Tensorizer:
         self._fitted = False
 
     def fit_transform(self, df: pd.DataFrame) -> TensorBundle:
+        """Fit di scaler/encoder sul DataFrame e successiva trasformazione.
+
+        Equivalente a ``_fit(df)`` seguito da ``transform(df)``. Usare questo
+        metodo la prima volta sui dati di training; per dati successivi usare
+        direttamente ``transform``.
+
+        Args:
+            df: DataFrame pulito contenente tutte le colonne numeriche,
+                categoriche e (opzionalmente) il target.
+
+        Returns:
+            ``TensorBundle`` con ``features`` normalizzate, ``target`` (o None)
+            e ``feature_names`` nell'ordine delle colonne.
+
+        Raises:
+            ValueError: Se il tensor risultante contiene NaN/Inf.
+        """
         self._fit(df)
         return self.transform(df)
 
