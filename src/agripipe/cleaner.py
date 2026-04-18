@@ -138,7 +138,9 @@ class AgriCleaner:
             no_rain = df[rain_col] < 2 if rain_col else True
             mask = (df[n_col] > 10) & dry_soil & no_rain
             if mask.any():
-                logger.warning("Sostenibilità: %d concimazioni su terreno troppo secco.", int(mask.sum()))
+                count = int(mask.sum())
+                logger.warning("Sostenibilità: %d concimazioni su terreno troppo secco.", count)
+                self.diagnostics.nitrogen_violations += count
 
         # --- D. RISTAGNO IDRICO ---
         if rain_col and soil_moist_col:
@@ -150,14 +152,18 @@ class AgriCleaner:
         if irrig_col and soil_moist_col:
             mask = (df[irrig_col] > 5) & (df[soil_moist_col] > 85)
             if mask.any():
-                logger.warning("Efficienza: %d irrigazioni inutili su suolo saturo.", int(mask.sum()))
+                count = int(mask.sum())
+                logger.warning("Efficienza: %d irrigazioni inutili su suolo saturo.", count)
+                self.diagnostics.irrigation_inefficient += count
 
         # --- F. SALUTE SUOLO ---
         if som_col:
             min_som = self.knowledge.get("general", {}).get("min_organic_matter", 1.5)
             mask = df[som_col] < min_som
             if mask.any():
-                logger.warning("Salute: %d lotti con sostanza organica degradata (<%s%%).", int(mask.sum()), min_som)
+                count = int(mask.sum())
+                logger.warning("Salute: %d lotti con sostanza organica degradata (<%s%%).", count, min_som)
+                self.diagnostics.soil_organic_low += count
 
         # --- GELATE E MALATTIE (Specifiche per coltura) ---
         for crop_name, rules in self.knowledge["crops"].items():
@@ -168,7 +174,9 @@ class AgriCleaner:
             if crop_name == "wine_grape_docg" and temp_col and rain_col:
                 inf_mask = mask & (df[temp_col] > rules.get("rule_10_temp", 10)) & (df[rain_col] > rules.get("rule_10_rain", 10))
                 if inf_mask.any():
-                    logger.warning("Malattia [It-Vite]: %d eventi a rischio Peronospora.", int(inf_mask.sum()))
+                    count = int(inf_mask.sum())
+                    logger.warning("Malattia [It-Vite]: %d eventi a rischio Peronospora.", count)
+                    self.diagnostics.peronospora_events += count
 
             # Resa
             if "yield" in df.columns and "max_yield" in rules:
@@ -183,14 +191,18 @@ class AgriCleaner:
                 ct = rules.get("critical_temp_flowering", 35)
                 h_mask = mask & m.isin(rules["flowering_months"]) & (df[temp_col] > ct)
                 if h_mask.any():
-                    logger.warning("Stress [It-%s]: %d colpi di calore in fioritura.", crop_name, int(h_mask.sum()))
+                    count = int(h_mask.sum())
+                    logger.warning("Stress [It-%s]: %d colpi di calore in fioritura.", crop_name, count)
+                    self.diagnostics.heat_stress_flowering += count
 
             # Gelo tardivo
             if date_col and temp_col and "frost_danger_months" in rules:
                 m = pd.to_datetime(df[date_col]).dt.month
                 f_mask = mask & m.isin(rules["frost_danger_months"]) & (df[temp_col] < 0)
                 if f_mask.any():
-                    logger.warning("Gelo [It-%s]: %d gelate tardive rilevate.", crop_name, int(f_mask.sum()))
+                    count = int(f_mask.sum())
+                    logger.warning("Gelo [It-%s]: %d gelate tardive rilevate.", crop_name, count)
+                    self.diagnostics.late_frost_events += count
         
         return df
 
@@ -214,8 +226,10 @@ class AgriCleaner:
             if col in df.columns:
                 mask = (df[col] < lo) | (df[col] > hi)
                 if mask.any():
-                    logger.warning("%s: %d fuori range fisico [%s, %s] → NaN", col, int(mask.sum()), lo, hi)
+                    count = int(mask.sum())
+                    logger.warning("%s: %d fuori range fisico [%s, %s] → NaN", col, count, lo, hi)
                     df.loc[mask, col] = np.nan
+                    self.diagnostics.out_of_bounds_removed += count
         return df
 
     def _handle_outliers(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -232,8 +246,10 @@ class AgriCleaner:
                 lo, hi = mu - 3 * sigma, mu + 3 * sigma
             mask = (s < lo) | (s > hi)
             if mask.any():
-                logger.info("%s: %d outlier → NaN", col, int(mask.sum()))
+                count = int(mask.sum())
+                logger.info("%s: %d outlier → NaN", col, count)
                 df.loc[mask, col] = np.nan
+                self.diagnostics.outliers_removed += count
         return df
 
     def _impute_missing(self, df: pd.DataFrame) -> pd.DataFrame:
