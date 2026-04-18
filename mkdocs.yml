@@ -1,0 +1,47 @@
+site_name: AgriPipe
+site_description: Data pipeline per dati agronomici: Excel → tensor PyTorch
+site_author: Your Name
+repo_url: https://github.com/yourusername/agripipe
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: green
+      accent: light green
+      toggle:
+        icon: material/brightness-7
+        name: Passa al tema scuro
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: green
+      accent: light green
+      toggle:
+        icon: material/brightness-4
+        name: Passa al tema chiaro
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+
+nav:
+  - Home: index.md
+  - Guida Utente:
+      - Quickstart: getting-started.md
+      - Configurazione Pipeline: configuration.md
+  - Riferimento API:
+      - Loader: api/loader.md
+      - Cleaner: api/cleaner.md
+      - Tensorizer: api/tensorizer.md
+  - Sviluppo: contributing.md

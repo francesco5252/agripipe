@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import logging
 
 import torch
 import typer
@@ -31,28 +32,59 @@ def run(
     ),
 ) -> None:
     """Esegue l'intera pipeline: load → clean → tensorize → save."""
-    logger.info("=== AgriPipe run ===")
+    try:
+        logger.info("=== AgriPipe run ===")
 
-    df_raw = load_raw(input)
-    cleaner = AgriCleaner.from_yaml(config)
-    df_clean = cleaner.clean(df_raw)
+        if not config.exists():
+            typer.secho(f"❌ Configurazione non trovata: {config}", fg=typer.colors.RED, err=True)
+            raise typer.Exit(code=1)
 
-    ds = AgriDataset(
-        df_clean,
-        numeric_columns=cleaner.config.numeric_columns,
-        categorical_columns=cleaner.config.categorical_columns,
-        target=target if target in df_clean.columns else None,
-    )
+        df_raw = load_raw(input)
+        cleaner = AgriCleaner.from_yaml(config)
+        df_clean = cleaner.clean(df_raw)
 
-    output.parent.mkdir(parents=True, exist_ok=True)
-    torch.save(
-        {"features": ds.features, "target": ds.target, "feature_names": ds.feature_names},
-        output,
-    )
-    logger.info("Tensor salvati in %s (shape=%s)", output, tuple(ds.features.shape))
+        if target not in df_clean.columns:
+            logger.warning("Colonna target '%s' non trovata. Generazione solo features.", target)
+            target_col = None
+        else:
+            target_col = target
 
-    if report:
-        generate_report(df_raw, df_clean, report)
+        ds = AgriDataset(
+            df_clean,
+            numeric_columns=cleaner.config.numeric_columns,
+            categorical_columns=cleaner.config.categorical_columns,
+            target=target_col,
+        )
+
+        output.parent.mkdir(parents=True, exist_ok=True)
+        torch.save(
+            {"features": ds.features, "target": ds.target, "feature_names": ds.feature_names},
+            output,
+        )
+        typer.secho(f"✓ Tensor salvati in {output} (shape={tuple(ds.features.shape)})", fg=typer.colors.GREEN)
+
+        if report:
+            generate_report(df_raw, df_clean, report)
+            typer.secho(f"✓ Report salvato in {report}", fg=typer.colors.GREEN)
+
+    except Exception as e:
+        typer.secho(f"❌ Errore durante l'esecuzione: {str(e)}", fg=typer.colors.RED, err=True)
+        if logger.getEffectiveLevel() <= 10:  # DEBUG
+            raise e
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def check(
+    config: Path = typer.Option(Path("configs/default.yaml"), "--config", "-c"),
+) -> None:
+    """Valida la sintassi del file di configurazione YAML."""
+    try:
+        AgriCleaner.from_yaml(config)
+        typer.secho(f"✓ Configurazione {config} valida.", fg=typer.colors.GREEN)
+    except Exception as e:
+        typer.secho(f"❌ Configurazione non valida: {str(e)}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
 
 
 @app.command()

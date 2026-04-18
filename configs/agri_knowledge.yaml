@@ -1,0 +1,91 @@
+# 🇮🇹 AgriPipe: Atlante Agronomico Territoriale Italiano
+# Regole iper-localizzate basate su Coltura + Zona.
+
+regional_presets:
+  # --- OLIVO ---
+  ulivo_ligure:
+    crop: "olive"
+    zona: "Liguria (Riviera)"
+    suolo_tessitura: "Medio impasto / Scheletro"
+    max_yield: 5.0            # Rese basse, alta qualità (olio DOP)
+    temp_range: [-5, 38]
+    ideal_ph: [6.5, 7.5]
+    note: "Focus su terreni terrazzati e bassa meccanizzazione."
+
+  ulivo_pugliese:
+    crop: "olive"
+    zona: "Puglia (Salento/Bari)"
+    suolo_tessitura: "Terra rossa / Calcareo"
+    max_yield: 12.0           # Rese alte, impianti intensivi
+    temp_range: [-2, 45]
+    ideal_ph: [7.0, 8.5]
+    salinity_tolerance: 4.0
+    note: "Pianure assolate, alta tolleranza al calore."
+
+  # --- GRANO ---
+  grano_siciliano:
+    crop: "durum_wheat"
+    zona: "Sicilia (Entroterra)"
+    suolo_tessitura: "Argilloso (Vertisuoli)"
+    max_yield: 4.5
+    temp_range: [-5, 45]
+    harvest_months: [5, 6]    # Mietitura precoce
+    ideal_ph: [7.5, 8.5]
+    note: "Grano duro antico, suoli pesanti e fessurati in estate."
+
+  grano_emiliano:
+    crop: "soft_wheat"
+    zona: "Emilia-Romagna (Pianura Padana)"
+    suolo_tessitura: "Limoso / Alluvionale"
+    max_yield: 10.0
+    temp_range: [-15, 35]
+    harvest_months: [6, 7]
+    ideal_ph: [6.0, 7.5]
+    note: "Grano tenero per panificazione, suoli fertili e freschi."
+
+  # --- VITE ---
+  vite_piemontese:
+    crop: "wine_grape_docg"
+    zona: "Langhe / Roero"
+    suolo_tessitura: "Marne / Argille calcaree"
+    max_yield: 8.0
+    temp_range: [-15, 36]
+    harvest_months: [9, 10]
+    ideal_ph: [7.0, 8.0]
+    note: "Grandi vini rossi (DOCG), focus su microclimi di collina."
+
+# --- REGOLE BIOLOGICHE PER COLTURA ---
+# Consumate da cleaner._apply_agronomic_rules via self.knowledge["crops"].
+crops:
+  olive:
+    t_base: 10.0
+    max_yield: 12.0
+    flowering_months: [5, 6]
+    frost_danger_months: [3, 4]
+    critical_temp_flowering: 35
+
+  durum_wheat:
+    t_base: 0.0
+    max_yield: 6.0
+    flowering_months: [4, 5]
+    frost_danger_months: [3]
+    critical_temp_flowering: 32
+
+  soft_wheat:
+    t_base: 0.0
+    max_yield: 10.0
+    flowering_months: [5]
+    frost_danger_months: [3, 4]
+    critical_temp_flowering: 30
+
+  wine_grape_docg:
+    t_base: 10.0
+    max_yield: 14.0
+    flowering_months: [5, 6]
+    frost_danger_months: [4]
+    critical_temp_flowering: 38
+    rule_10_temp: 10
+    rule_10_rain: 10
+
+general:
+  min_organic_matter: 1.5
