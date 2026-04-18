@@ -10,7 +10,21 @@ from agripipe.tensorizer import Tensorizer
 
 
 class AgriDataset(Dataset):
-    """Dataset PyTorch costruito da un DataFrame già pulito."""
+    """PyTorch Dataset costruito sopra un DataFrame già pulito.
+
+    Wrapper leggero attorno a ``Tensorizer`` che espone ``__len__`` e
+    ``__getitem__`` per l'uso con ``torch.utils.data.DataLoader``.
+
+    Attributes:
+        tensorizer: Istanza di ``Tensorizer`` fit sui dati.
+        features: Tensor 2D ``[N, D]`` float32, già normalizzato.
+        target: Tensor 1D ``[N]`` o None per dataset unsupervised.
+        feature_names: Ordine delle colonne nelle features.
+
+    Example:
+        >>> ds = AgriDataset(df_clean, numeric_columns=["temp", "ph"], target="yield")
+        >>> loader = DataLoader(ds, batch_size=32, shuffle=True)
+    """
 
     def __init__(
         self,

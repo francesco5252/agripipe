@@ -25,19 +25,19 @@ def load_raw(
     sheet_name: str | int | None = 0,
     schema: RawSchema | None = None,
 ) -> pd.DataFrame:
-    """Legge un Excel grezzo, valida lo schema minimo e logga anomalie.
+    """Carica e valida un file Excel/CSV agronomico.
 
     Args:
-        path: percorso al file .xlsx / .xls.
-        sheet_name: foglio da leggere (default: primo).
-        schema: schema di validazione; se None usa quello di default.
+        path: Percorso al file ``.xlsx``, ``.xls``, o ``.csv``.
+        sheet_name: Foglio da leggere (default: primo).
+        schema: Schema di validazione; se ``None`` usa quello di default.
 
     Returns:
-        DataFrame grezzo (non ancora pulito).
+        DataFrame grezzo con tipi inferiti da pandas.
 
     Raises:
-        FileNotFoundError: se il path non esiste.
-        ValueError: se mancano colonne obbligatorie.
+        FileNotFoundError: Se il path non esiste.
+        ValueError: Se mancano colonne obbligatorie o il file è vuoto.
     """
     path = Path(path)
     if not path.exists():
