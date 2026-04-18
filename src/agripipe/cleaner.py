@@ -45,6 +45,7 @@ class CleanerDiagnostics:
 
     total_rows: int = 0
     imputation_strategy_used: str = ""
+    current_preset_name: str | None = None
     values_imputed: int = 0
     outliers_removed: int = 0
     out_of_bounds_removed: int = 0
@@ -81,11 +82,63 @@ class AgriCleaner:
             raw["physical_bounds"] = {k: tuple(v) for k, v in raw["physical_bounds"].items()}
         return cls(CleanerConfig(**raw))
 
+    @classmethod
+    def from_preset(
+        cls,
+        preset_name: str,
+        knowledge_path: str = "configs/agri_knowledge.yaml",
+    ) -> "AgriCleaner":
+        """Istanzia caricando un preset regionale dal file di conoscenza.
+        
+        Args:
+            preset_name: Nome della chiave in ``regional_presets`` (es. "ulivo_ligure").
+            knowledge_path: Path al file YAML dei preset.
+            
+        Raises:
+            ValueError: Se il preset non esiste.
+        """
+        path = Path(knowledge_path)
+        with open(path, "r", encoding="utf-8") as f:
+            knowledge = yaml.safe_load(f)
+        
+        presets = knowledge.get("regional_presets", {})
+        if preset_name not in presets:
+            raise ValueError(f"Preset '{preset_name}' non trovato in {knowledge_path}")
+        
+        preset_data = presets[preset_name]
+        
+        # Configurazione minima: le colonne verranno scoperte o passate
+        # Per ora lasciamo che AgriCleaner scopra le numeriche se non forzate
+        config = CleanerConfig(
+            knowledge_path=knowledge_path,
+            # Non forziamo colonne che potrebbero mancare nel dataset sintetico
+            # ma impostiamo quelle che ci aspettiamo di avere se presenti
+            numeric_columns=[], 
+            date_columns=["date", "data"],
+            dedup_keys=["field_id", "date"],
+        )
+        
+        if "temp_range" in preset_data:
+            config.physical_bounds["temp"] = tuple(preset_data["temp_range"])
+            config.physical_bounds["temperatura"] = tuple(preset_data["temp_range"])
+        if "ideal_ph" in preset_data:
+            config.physical_bounds["ph"] = tuple(preset_data["ideal_ph"])
+            
+        cleaner = cls(config)
+        cleaner.diagnostics.current_preset_name = preset_name
+        return cleaner
+
     def clean(self, df: pd.DataFrame) -> pd.DataFrame:
         """Applica l'intera pipeline di pulizia e calcola gli indici agronomici."""
         self.diagnostics = CleanerDiagnostics(total_rows=len(df))
         logger.info("Avvio pulizia intelligente su %d righe", len(df))
         df = df.copy()
+
+        # Se numeric_columns è vuoto, lo popoliamo con tutte le colonne numeriche presenti
+        if not self.config.numeric_columns:
+            self.config.numeric_columns = df.select_dtypes(include=[np.number]).columns.tolist()
+            logger.info("Colonne numeriche scoperte: %s", self.config.numeric_columns)
+
         df = self._coerce_types(df)
         df = self._drop_sparse_columns(df)
         df = self._apply_agronomic_rules(df)

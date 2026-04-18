@@ -9,12 +9,13 @@ import typer
 
 from agripipe.cleaner import AgriCleaner
 from agripipe.dataset import AgriDataset
+from agripipe.export import export_ml_bundle
 from agripipe.loader import load_raw
 from agripipe.report import generate_report
 from agripipe.synth import SynthConfig, generate_dirty_excel
 from agripipe.utils.logging_setup import get_logger
 
-app = typer.Typer(help="AgriPipe: Excel agronomici → tensor PyTorch.")
+app = typer.Typer(help="AgriPipe Pro: Excel agronomici → ML Bundles & Reports.")
 logger = get_logger(__name__)
 
 
@@ -22,24 +23,38 @@ logger = get_logger(__name__)
 def run(
     input: Path = typer.Option(..., "--input", "-i", exists=True, help="File .xlsx di input."),
     output: Path = typer.Option(..., "--output", "-o", help="Path .pt di output."),
-    config: Path = typer.Option(
-        Path("configs/default.yaml"), "--config", "-c", help="YAML di configurazione."
+    config: Path | None = typer.Option(
+        None, "--config", "-c", help="YAML di configurazione (opzionale se si usa --preset)."
+    ),
+    preset: str | None = typer.Option(
+        None, "--preset", "-p", help="Usa un preset regionale (es: ulivo_ligure)."
     ),
     target: str = typer.Option("yield", "--target", "-t", help="Colonna target."),
     report: Path | None = typer.Option(
         None, "--report", "-r", help="Path HTML del report (opzionale)."
     ),
+    export_ml: Path | None = typer.Option(
+        None, "--export-ml", "-e", help="Esporta bundle ML completo (.zip) in questa cartella."
+    ),
 ) -> None:
-    """Esegue l'intera pipeline: load → clean → tensorize → save."""
+    """Esegue l'intera pipeline: load → clean → tensorize → save/export."""
     try:
         logger.info("=== AgriPipe run ===")
 
-        if not config.exists():
-            typer.secho(f"❌ Configurazione non trovata: {config}", fg=typer.colors.RED, err=True)
+        if preset:
+            logger.info("Caricamento preset: %s", preset)
+            cleaner = AgriCleaner.from_preset(preset)
+            typer.secho(f"✓ Preset regionale: {preset}", fg=typer.colors.CYAN)
+        elif config:
+            if not config.exists():
+                typer.secho(f"❌ Configurazione non trovata: {config}", fg=typer.colors.RED, err=True)
+                raise typer.Exit(code=1)
+            cleaner = AgriCleaner.from_yaml(config)
+        else:
+            typer.secho("❌ Fornire --config o --preset.", fg=typer.colors.RED, err=True)
             raise typer.Exit(code=1)
 
         df_raw = load_raw(input)
-        cleaner = AgriCleaner.from_yaml(config)
         df_clean = cleaner.clean(df_raw)
 
         if target not in df_clean.columns:
@@ -64,6 +79,14 @@ def run(
             f"✓ Tensor salvati in {output} (shape={tuple(ds.features.shape)})",
             fg=typer.colors.GREEN,
         )
+
+        if export_ml:
+            # Recuperiamo il preset dict per il metadata
+            preset_dict = cleaner.knowledge.get("regional_presets", {}).get(preset or "", {})
+            paths = export_ml_bundle(
+                df_clean, cleaner, preset_dict, export_ml, target=target_col
+            )
+            typer.secho(f"✓ Bundle ML esportato in {paths['zip']}", fg=typer.colors.GREEN)
 
         if report:
             generate_report(df_raw, df_clean, report)
@@ -105,11 +128,20 @@ def generate(
 def report(
     input: Path = typer.Option(..., "--input", "-i", exists=True, help="Excel grezzo."),
     output: Path = typer.Option(Path("out/report.html"), "--output", "-o"),
-    config: Path = typer.Option(Path("configs/default.yaml"), "--config", "-c"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    preset: str | None = typer.Option(None, "--preset", "-p"),
 ) -> None:
     """Genera solo il report HTML di qualità (senza salvare tensor)."""
+    if preset:
+        cleaner = AgriCleaner.from_preset(preset)
+    elif config:
+        cleaner = AgriCleaner.from_yaml(config)
+    else:
+        typer.secho("❌ Fornire --config o --preset.", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+
     df_raw = load_raw(input)
-    df_clean = AgriCleaner.from_yaml(config).clean(df_raw)
+    df_clean = cleaner.clean(df_raw)
     generate_report(df_raw, df_clean, output)
     typer.echo(f"✓ Report: {output}")
 

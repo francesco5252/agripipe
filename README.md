@@ -4,7 +4,15 @@
 [![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**AgriPipe** è una pipeline ETL (Extract, Transform, Load) specializzata per il settore agronomico. È progettata per risolvere il problema comune dei dati "sporchi" in formato Excel, convertendoli in tensori PyTorch pronti per l'addestramento di modelli di Machine Learning.
+**AgriPipe** è una pipeline ETL (Extract, Transform, Load) professionale per il settore agronomico. Converte file Excel "sporchi" in **ML Bundles** (tensori PyTorch + metadati) pronti per il team di Data Science, garantendo al contempo la sostenibilità e la qualità del dato.
+
+## 🌟 Novità Versione Pro
+
+- **Atlante Agronomico**: 12 preset regionali pre-configurati (es. *Olivo DOP Ligure*, *Vite Barolo DOCG*, *Riso Carnaroli*) che applicano regole biologiche e fisiche iper-localizzate.
+- **Sustainability Score Card**: Calcolo automatico di indici di sostenibilità (Nitrogen Use Efficiency, Stress Idrico, Salute del Suolo) con visualizzazione a badge (Verde/Arancio/Rosso).
+- **ML Bundle Exporter**: Genera automaticamente un pacchetto `.zip` contenente i tensori `.pt`, lo scaler normalizzato e un file `metadata.json` auto-documentato.
+- **Indici Avanzati**: Calcolo integrato di Gradi Giorno (GDD), Indice di Huglin e Drought Score a 7 giorni.
+- **Interfaccia "Clean & Nature"**: Nuova UI Streamlit moderna, intuitiva e focalizzata sul valore agronomico.
 
 ## 🚀 Funzionalità Chiave
 
@@ -19,95 +27,68 @@
 
 ```bash
 # Clonazione repository
-git clone https://github.com/yourusername/agripipe.git
+git clone https://github.com/francesco5252/agripipe.git
 cd agripipe
 
 # Installazione in modalità sviluppo
 pip install -e ".[dev]"
 ```
 
-## 💻 Utilizzo CLI
+## 💻 Utilizzo CLI (Pro)
 
-AgriPipe offre un'interfaccia a riga di comando potente e intuitiva.
+AgriPipe Pro offre opzioni avanzate per velocizzare il workflow:
 
-### 1. Eseguire la Pipeline Completa
+### 1. Eseguire con un Preset Regionale
 ```bash
-agripipe run --input data/raw.xlsx --output out/tensors.pt --report out/report.html
+agripipe run --input dati.xlsx --preset ulivo_pugliese --report report.html
 ```
 
-### 2. Validare la Configurazione
+### 2. Esportare un ML Bundle Completo
 ```bash
-agripipe check --config configs/default.yaml
+agripipe run -i dati.xlsx -p vite_piemontese -o out/model.pt --export-ml ./bundles
+# Crea model.pt, model.json e model.zip (pronto per la consegna)
 ```
 
-### 3. Generare Dati Sintetici (per Test)
+### 3. Generare Dati di Test Pro
 ```bash
-agripipe generate --rows 1000 --output data/test_data.xlsx
+# Genera un file ricco di colonne di sostenibilità (Azoto, Suolo, Pioggia)
+python -m agripipe.cli generate --output data/pro_sample.xlsx
 ```
-
-### 4. Opzioni Globali
-- `--log-file path/to/log.txt`: Salva l'esecuzione su file.
-- `--verbose / -v`: Abilita i log di debug.
 
 ## 🐍 Utilizzo Python API
 
 ```python
 from agripipe.loader import load_raw
 from agripipe.cleaner import AgriCleaner
-from agripipe.dataset import AgriDataset
 
 # 1. Caricamento
 df = load_raw("dati_campo.xlsx")
 
-# 2. Pulizia
-cleaner = AgriCleaner.from_yaml("configs/default.yaml")
+# 2. Pulizia usando un preset territoriale
+cleaner = AgriCleaner.from_preset("prosecco_veneto")
 df_clean = cleaner.clean(df)
 
-# 3. Dataset PyTorch
-dataset = AgriDataset(
-    df_clean, 
-    numeric_columns=["temp", "humidity"], 
-    target="yield"
-)
-
-# 4. Pronto per il DataLoader
-from torch.utils.data import DataLoader
-loader = DataLoader(dataset, batch_size=32, shuffle=True)
+# 3. Accedi ai dati di sostenibilità
+stats = cleaner.diagnostics
+print(f"Anomalie corrette: {stats.values_imputed}")
 ```
 
-## 🤖 Integrazione con PyTorch
+## 🤖 Il Bundle ML (.zip)
 
-Il file `.pt` generato da AgriPipe è un pacchetto pronto all'uso. Ecco come caricarlo e utilizzarlo nel tuo script di addestramento:
-
-```python
-import torch
-
-# Carica il pacchetto generato da AgriPipe
-data = torch.load("out/tensors.pt")
-
-features = data["features"]       # Tensor [N, D] pronto per il modello
-target = data["target"]           # Tensor [N] (opzionale)
-column_names = data["feature_names"]  # Lista dei nomi delle colonne (es. ['temp', 'umidità', ...])
-
-print(f"Dataset caricato con {features.shape[1]} variabili: {column_names}")
-
-# Esempio: Creazione di un modello lineare semplice
-input_dim = features.shape[1]
-model = torch.nn.Linear(input_dim, 1)
-
-# Passaggio dei dati (Inference/Training)
-output = model(features)
-```
+Il team di Data Science riceve un pacchetto completo:
+1. `model.pt`: Tensor di features (normalizzate) e target.
+2. `model.json`: Documentazione automatica di ogni colonna e contesto agronomico.
+3. Esempio di caricamento PyTorch incluso nei metadati.
 
 ## 🏗 Architettura
 
 ```mermaid
 graph TD
-    A[Excel/CSV] --> B[Loader: Pydantic Validation]
-    B --> C[Cleaner: Outliers & NaNs]
-    C --> D[Report: HTML Quality Check]
-    C --> E[Tensorizer: Scaling & Encoding]
-    E --> F[PyTorch Tensors]
+    A[Excel/CSV] --> B[Loader: Schema Validation]
+    B --> C[Cleaner: Agronomic Rules & Presets]
+    C --> D[Indices: GDD, Huglin, Sustainability]
+    D --> E[Export: PT + JSON + ZIP]
+    D --> F[Report: HTML & ScoreCard]
 ```
 
 ## 📖 Documentazione

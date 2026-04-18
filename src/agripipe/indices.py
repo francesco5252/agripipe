@@ -44,7 +44,7 @@ def compute_agronomic_indices(df: pd.DataFrame, knowledge: dict) -> pd.DataFrame
         return df
 
     # Ordiniamo i dati per campo e data (fondamentale per gli indici accumulati)
-    if date_col and field_col:
+    if date_col and field_col and field_col in df.columns and date_col in df.columns:
         df[date_col] = pd.to_datetime(df[date_col])
         df = df.sort_values(by=[field_col, date_col])
 
@@ -61,8 +61,7 @@ def compute_agronomic_indices(df: pd.DataFrame, knowledge: dict) -> pd.DataFrame
             # GDD classico
             df.loc[mask, "gdd_daily"] = (df.loc[mask, temp_col] - t_base).clip(lower=0)
 
-            # Huglin (Semplificato per dati giornalieri: (T_media - 10 + T_max - 10)/2 * coefficiente_giorno)
-            # Qui usiamo una versione base: (T_media - 10) con un piccolo bonus se fa molto caldo
+            # Huglin (Semplificato per dati giornalieri)
             if "grape" in crop_name or "vite" in crop_name:
                 df.loc[mask, "huglin_daily"] = (df.loc[mask, temp_col] - 10).clip(lower=0) * 1.02
 
@@ -70,7 +69,7 @@ def compute_agronomic_indices(df: pd.DataFrame, knowledge: dict) -> pd.DataFrame
         df["huglin_index"] = df.groupby(field_col)["huglin_daily"].cumsum()
 
         # 2. STRESS IDRICO ACCUMULATO (Ultimi 7 giorni)
-        if rain_col:
+        if rain_col and rain_col in df.columns:
             # Calcoliamo il bilancio giornaliero
             df["daily_wb"] = df[rain_col] - (df[temp_col] * 0.2)
             # Somma mobile a 7 giorni: se il numero è molto negativo, c'è siccità
@@ -79,11 +78,10 @@ def compute_agronomic_indices(df: pd.DataFrame, knowledge: dict) -> pd.DataFrame
             )
 
     # 3. INDICI DI SOSTENIBILITÀ (Efficienza Nutrienti)
-    if yield_col and n_col:
+    if yield_col and n_col and yield_col in df.columns and n_col in df.columns:
         # Nitrogen Use Efficiency (NUE): Tonnellate prodotte per ogni kg di Azoto
-        # Più è alto, più l'azienda è sostenibile (produce di più con meno chimica)
         df["n_efficiency"] = df[yield_col] / (
             df[n_col] + 1.0
-        )  # +1.0 per evitare divisioni per zero
+        )
 
     return df
