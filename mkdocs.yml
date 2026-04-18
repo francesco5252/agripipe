@@ -1,26 +1,26 @@
-site_name: "AgriPipe"
-site_description: "AgriPipe data pipeline"
-site_author: "Francesco"
-repo_url: "https://github.com/francesco5252/agripipe"
+"site_name": "AgriPipe"
+"site_description": "AgriPipe data pipeline"
+"site_author": "Francesco"
+"repo_url": "https://github.com/francesco5252/agripipe"
 
-theme:
-  name: "material"
-  palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: "default"
-      primary: "green"
-      accent: "light green"
-      toggle:
-        icon: "material/brightness-7"
-        name: "Passa al tema scuro"
-    - media: "(prefers-color-scheme: dark)"
-      scheme: "slate"
-      primary: "green"
-      accent: "light green"
-      toggle:
-        icon: "material/brightness-4"
-        name: "Passa al tema chiaro"
-  features:
+"theme":
+  "name": "material"
+  "palette":
+    - "media": "(prefers-color-scheme: light)"
+      "scheme": "default"
+      "primary": "green"
+      "accent": "light green"
+      "toggle":
+        "icon": "material/brightness-7"
+        "name": "Passa al tema scuro"
+    - "media": "(prefers-color-scheme: dark)"
+      "scheme": "slate"
+      "primary": "green"
+      "accent": "light green"
+      "toggle":
+        "icon": "material/brightness-4"
+        "name": "Passa al tema chiaro"
+  "features":
     - "navigation.tabs"
     - "navigation.sections"
     - "navigation.top"
@@ -28,14 +28,14 @@ theme:
     - "search.highlight"
     - "content.code.copy"
 
-plugins:
+"plugins":
   - "search"
   - "mkdocstrings":
-      handlers:
-        python:
-          paths: ["src"]
+      "handlers":
+        "python":
+          "paths": ["src"]
 
-nav:
+"nav":
   - "Home": "index.md"
   - "Guida Utente":
       - "Quickstart": "getting-started.md"
