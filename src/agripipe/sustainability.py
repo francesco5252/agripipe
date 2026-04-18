@@ -25,9 +25,9 @@ from agripipe.cleaner import CleanerDiagnostics
 Level = Literal["green", "orange", "red"]
 
 _LEVEL_ICON: dict[str, str] = {
-    "green": "\U0001f7e2",   # pallino verde
+    "green": "\U0001f7e2",  # pallino verde
     "orange": "\U0001f7e0",  # pallino arancio
-    "red": "\U0001f534",     # pallino rosso
+    "red": "\U0001f534",  # pallino rosso
 }
 
 
@@ -66,17 +66,11 @@ def _azoto_badge(violations: int, total: int) -> Badge:
     elif pct <= 8.0:
         level = "orange"
         headline = "Non-conformita marginale"
-        tip = (
-            "Verificare tempistica applicazioni rispetto a pioggia e "
-            "umidita del suolo"
-        )
+        tip = "Verificare tempistica applicazioni rispetto a pioggia e umidita del suolo"
     else:
         level = "red"
         headline = "Non-conformita sistemica Direttiva Nitrati"
-        tip = (
-            "Ridurre dosi; calibrare su analisi fogliare e frazionare "
-            "gli apporti"
-        )
+        tip = "Ridurre dosi; calibrare su analisi fogliare e frazionare gli apporti"
     return Badge(
         name="azoto",
         level=level,
@@ -99,10 +93,7 @@ def _peronospora_badge(events: int) -> Badge:
     else:
         level = "red"
         headline = "Infezione probabile in corso"
-        tip = (
-            "Trattamento curativo immediato; valutazione fitosanitaria "
-            "in campo"
-        )
+        tip = "Trattamento curativo immediato; valutazione fitosanitaria in campo"
     return Badge(
         name="peronospora",
         level=level,

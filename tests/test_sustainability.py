@@ -17,7 +17,6 @@ import pytest
 from agripipe.cleaner import CleanerDiagnostics
 from agripipe.sustainability import Badge, compute_scorecard, overall_message
 
-
 # ---------- Badge dataclass ----------
 
 
@@ -119,9 +118,9 @@ def test_peronospora_thresholds(events, expected_level):
 @pytest.mark.parametrize(
     "inefficient, expected_level",
     [
-        (3, "green"),    # 3%
+        (3, "green"),  # 3%
         (10, "orange"),  # 10%
-        (20, "red"),     # 20%
+        (20, "red"),  # 20%
     ],
 )
 def test_irrigazione_thresholds(inefficient, expected_level):
@@ -136,9 +135,9 @@ def test_irrigazione_thresholds(inefficient, expected_level):
 @pytest.mark.parametrize(
     "low, expected_level",
     [
-        (5, "green"),     # 5%
-        (20, "orange"),   # 20%
-        (50, "red"),      # 50%
+        (5, "green"),  # 5%
+        (20, "orange"),  # 20%
+        (50, "red"),  # 50%
     ],
 )
 def test_suolo_thresholds(low, expected_level):
@@ -153,19 +152,15 @@ def test_suolo_thresholds(low, expected_level):
 def test_overall_message_all_green():
     diag = CleanerDiagnostics()  # tutti zero => tutti green
     badges = compute_scorecard(diag, total_rows=100)
-    assert overall_message(badges) == (
-        "Gestione conforme agli standard di sostenibilita"
-    )
+    assert overall_message(badges) == ("Gestione conforme agli standard di sostenibilita")
 
 
 def test_overall_message_multiple_red():
     diag = CleanerDiagnostics(
-        nitrogen_violations=20,    # red
-        peronospora_events=10,     # red
+        nitrogen_violations=20,  # red
+        peronospora_events=10,  # red
         irrigation_inefficient=3,  # green
-        soil_organic_low=5,        # green
+        soil_organic_low=5,  # green
     )
     badges = compute_scorecard(diag, total_rows=100)
-    assert overall_message(badges) == (
-        "Criticita sistemiche: revisione protocolli necessaria"
-    )
+    assert overall_message(badges) == ("Criticita sistemiche: revisione protocolli necessaria")
