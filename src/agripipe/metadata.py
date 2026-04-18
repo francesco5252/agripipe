@@ -10,6 +10,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
+import numpy as np
 from agripipe.dataset import AgriDataset
 
 SCHEMA_VERSION = 1
@@ -59,25 +60,41 @@ def build_metadata(
     target: str | None = None,
     name: str = "agripipe_export",
 ) -> dict:
-    """Costruisce il dizionario metadata dal dataset e dal contesto agronomico.
+    """Costruisce il dizionario metadata con profili statistici avanzati.
     
-    Args:
-        dataset: ``AgriDataset`` già fit (features + feature_names).
-        preset: Entry di ``regional_presets`` del YAML (region, crop, zona, ...).
-        cleaner_diagnostics: ``dataclasses.asdict(cleaner.diagnostics)``.
-        target: Nome della colonna target (es. "yield").
-        name: Identificatore del dataset (diventa ``dataset_info.name``).
-    
-    Returns:
-        Dizionario pronto per JSON con: schema_version, generated_at,
-        dataset_info, columns, agronomic_context, cleaning_stats,
-        pytorch_usage.
+    Include: info dataset, descrizioni colonne, contesto pipeline,
+    statistiche descrittive (mean, std, min, max) e matrice di correlazione.
     """
     n_rows = dataset.features.shape[0]
     n_features = dataset.features.shape[1]
     
-    columns = [_describe_column(n, i) for i, n in enumerate(dataset.feature_names)]
+    # 1. Statistiche Descrittive (usando il DataFrame originale del dataset se disponibile o calcolando dai tensor)
+    # Per semplicità e precisione, le calcoliamo qui come dizionario
+    columns_stats = []
+    # Trasformiamo il tensor in array per calcoli veloci
+    X = dataset.features.numpy()
     
+    for i, col_name in enumerate(dataset.feature_names):
+        col_data = X[:, i]
+        desc = _describe_column(col_name, i)
+        desc["stats"] = {
+            "mean": float(np.mean(col_data)),
+            "std": float(np.std(col_data)),
+            "min": float(np.min(col_data)),
+            "max": float(np.max(col_data)),
+        }
+        columns_stats.append(desc)
+
+    # 2. Matrice di Correlazione (solo se abbiamo più di una colonna)
+    correlation_map = {}
+    if n_features > 1:
+        corr_matrix = np.corrcoef(X, rowvar=False)
+        for i, col_i in enumerate(dataset.feature_names):
+            correlation_map[col_i] = {
+                col_j: float(corr_matrix[i, j]) 
+                for j, col_j in enumerate(dataset.feature_names)
+            }
+
     return {
         "schema_version": SCHEMA_VERSION,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -88,11 +105,27 @@ def build_metadata(
             "target": target,
             "target_unit": _COLUMN_DESCRIPTIONS.get((target or "").lower(), ("", ""))[0],
             "task": "regression" if target else "unsupervised",
+            "file_fingerprint_sha256": dataset.df.attrs.get("file_hash", "unknown"),
+            "schema_lock_hash": dataset.metadata.get("schema_lock_hash", "unknown"),
+            "precision": dataset.metadata.get("precision", "float32"),
         },
-        "columns": columns,
+        "columns": columns_stats,
+        "correlations": correlation_map,
+        "data_integrity_report": dataset.df.attrs.get("integrity_report", {}),
+        "split_info": {
+            "is_split": dataset.train_indices is not None,
+            "counts": {
+                "train": len(dataset.train_indices) if dataset.train_indices else 0,
+                "val": len(dataset.val_indices) if dataset.val_indices else 0,
+                "test": len(dataset.test_indices) if dataset.test_indices else 0,
+                "total": len(dataset)
+            },
+            "ratios": dataset.metadata.get("split_ratios", "none")
+        },
         "pipeline_context": {
             "preset_applied": preset.get("crop_display", "custom"),
             "region": preset.get("region", "unknown"),
+            "categorical_mappings": dataset.tensorizer.get_categorical_mappings(),
         },
         "cleaning_stats": cleaner_diagnostics,
         "pytorch_usage": {
