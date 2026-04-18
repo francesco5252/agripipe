@@ -152,7 +152,7 @@ def test_suolo_thresholds(low, expected_level):
 def test_overall_message_all_green():
     diag = CleanerDiagnostics()  # tutti zero => tutti green
     badges = compute_scorecard(diag, total_rows=100)
-    assert overall_message(badges) == ("Gestione conforme agli standard di sostenibilita")
+    assert overall_message(badges) == ("Gestione conforme agli standard di sostenibilità")
 
 
 def test_overall_message_multiple_red():
@@ -163,4 +163,4 @@ def test_overall_message_multiple_red():
         soil_organic_low=5,  # green
     )
     badges = compute_scorecard(diag, total_rows=100)
-    assert overall_message(badges) == ("Criticita sistemiche: revisione protocolli necessaria")
+    assert overall_message(badges) == ("Criticità sistemiche: revisione protocolli necessaria")

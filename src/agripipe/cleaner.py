@@ -428,9 +428,10 @@ class AgriCleaner:
         return df
 
     def _deduplicate(self, df: pd.DataFrame) -> pd.DataFrame:
-        if not self.config.dedup_keys:
+        keys = [k for k in self.config.dedup_keys if k in df.columns]
+        if not keys:
             return df.drop_duplicates()
         before = len(df)
-        df = df.drop_duplicates(subset=self.config.dedup_keys, keep="last")
+        df = df.drop_duplicates(subset=keys, keep="last")
         logger.info("Deduplica: %d → %d righe", before, len(df))
         return df

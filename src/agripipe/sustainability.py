@@ -1,18 +1,18 @@
-"""Sustainability Score Card: 4 badge sintetici di sostenibilita agronomica.
+"""Sustainability Score Card: 4 badge sintetici di sostenibilità agronomica.
 
-Partendo da una diagnostica popolata da :class:`agripipe.cleaner.AgriCleaner`,
-calcola quattro indicatori con semantica a semaforo (verde / arancio / rosso).
+Partendo da una diagnostica popolata da ``AgriCleaner``, calcola quattro
+indicatori con semantica a semaforo (verde / arancio / rosso).
 
 Soglie di riferimento:
-    - Azoto: percentuale di righe con violazione Direttiva Nitrati 91/676/CEE.
-      green <3% | orange 3-8% | red >8%.
-    - Peronospora: conteggio assoluto di eventi "Regola dei Tre 10"
-      (temp >10 deg C, rain >10 mm). green 0-2 | orange 3-4 | red >=5.
-    - Irrigazione: percentuale di eventi irrigui inefficienti su suolo saturo.
-      green <5% | orange 5-15% | red >15%.
-    - Suolo: percentuale di letture con sostanza organica <1.5%
+    - **Azoto**: percentuale di righe con violazione Direttiva Nitrati 91/676/CEE.
+      Verde <3% | Arancio 3-8% | Rosso >8%.
+    - **Peronospora**: conteggio assoluto di eventi "Regola dei Tre 10"
+      (temp >10°C, rain >10mm). Verde 0-2 | Arancio 3-4 | Rosso >=5.
+    - **Irrigazione**: percentuale di eventi irrigui inefficienti su suolo saturo.
+      Verde <5% | Arancio 5-15% | Rosso >15%.
+    - **Suolo**: percentuale di letture con sostanza organica <1.5%
       (riferimento FAO per suoli mediterranei degradati).
-      green <10% | orange 10-30% | red >30%.
+      Verde <10% | Arancio 10-30% | Rosso >30%.
 """
 
 from __future__ import annotations
@@ -33,16 +33,16 @@ _LEVEL_ICON: dict[str, str] = {
 
 @dataclass(frozen=True)
 class Badge:
-    """Indicatore sintetico di sostenibilita agronomica.
+    """Indicatore sintetico di sostenibilità agronomica.
 
     Attributes:
-        name: identificatore tecnico ('azoto', 'peronospora', 'irrigazione',
-            'suolo').
-        level: livello di conformita ('green', 'orange', 'red').
-        icon: pallino colorato corrispondente al livello.
-        headline: descrizione sintetica del risultato.
-        value: metrica numerica (percentuale 0-100 o conteggio assoluto).
-        tip: raccomandazione agronomica operativa.
+        name: Identificatore tecnico (``"azoto"``, ``"peronospora"``,
+            ``"irrigazione"``, ``"suolo"``).
+        level: Livello di conformità (``"green"``, ``"orange"``, ``"red"``).
+        icon: Pallino colorato corrispondente al livello.
+        headline: Descrizione sintetica del risultato.
+        value: Metrica numerica (percentuale 0-100 o conteggio assoluto).
+        tip: Raccomandazione agronomica operativa.
     """
 
     name: str
@@ -65,11 +65,11 @@ def _azoto_badge(violations: int, total: int) -> Badge:
         tip = "Mantenere il regime attuale di applicazione"
     elif pct <= 8.0:
         level = "orange"
-        headline = "Non-conformita marginale"
-        tip = "Verificare tempistica applicazioni rispetto a pioggia e umidita del suolo"
+        headline = "Non-conformità marginale"
+        tip = "Verificare tempistica applicazioni rispetto a pioggia e umidità del suolo"
     else:
         level = "red"
-        headline = "Non-conformita sistemica Direttiva Nitrati"
+        headline = "Non-conformità sistemica Direttiva Nitrati"
         tip = "Ridurre dosi; calibrare su analisi fogliare e frazionare gli apporti"
     return Badge(
         name="azoto",
@@ -113,7 +113,7 @@ def _irrigazione_badge(inefficient: int, total: int) -> Badge:
     elif pct <= 15.0:
         level = "orange"
         headline = "Inefficienza idrica rilevabile"
-        tip = "Ricalibrare sensori umidita e soglie di attivazione"
+        tip = "Ricalibrare sensori umidità e soglie di attivazione"
     else:
         level = "red"
         headline = "Spreco idrico sistemico"
@@ -156,17 +156,17 @@ def compute_scorecard(
     diagnostics: CleanerDiagnostics,
     total_rows: int,
 ) -> list[Badge]:
-    """Calcola i 4 badge di sostenibilita da una diagnostica del cleaner.
+    """Calcola i 4 badge di sostenibilità da una diagnostica del cleaner.
 
     Args:
-        diagnostics: oggetto popolato da :meth:`AgriCleaner.clean`.
-        total_rows: numero totale di righe del dataset analizzato.
+        diagnostics: Oggetto popolato da ``AgriCleaner.clean``.
+        total_rows: Numero totale di righe del dataset analizzato.
             Usato come denominatore per i badge percentuali (azoto,
-            irrigazione, suolo). Ignorato per peronospora (conteggio assoluto).
+            irrigazione, suolo). Ignorato per peronospora.
 
     Returns:
         Lista ordinata dei 4 badge:
-            ``[azoto, peronospora, irrigazione, suolo]``.
+        ``[azoto, peronospora, irrigazione, suolo]``.
     """
     return [
         _azoto_badge(diagnostics.nitrogen_violations, total_rows),
@@ -180,18 +180,17 @@ def overall_message(badges: list[Badge]) -> str:
     """Sintetizza lo stato complessivo dai 4 badge.
 
     Args:
-        badges: lista di badge prodotta da :func:`compute_scorecard`.
+        badges: Lista di badge prodotta da ``compute_scorecard``.
 
     Returns:
-        Messaggio testuale aggregato. Nessun emoji: il colore e riservato
-        alle icone dei singoli badge.
+        Messaggio testuale aggregato (es. "Criticita rilevata").
     """
     reds = sum(1 for b in badges if b.level == "red")
     oranges = sum(1 for b in badges if b.level == "orange")
     if reds >= 2:
-        return "Criticita sistemiche: revisione protocolli necessaria"
+        return "Criticità sistemiche: revisione protocolli necessaria"
     if reds == 1:
-        return "Criticita rilevata: intervento raccomandato"
+        return "Criticità rilevata: intervento raccomandato"
     if oranges >= 1:
         return "Gestione accettabile con aree di miglioramento"
-    return "Gestione conforme agli standard di sostenibilita"
+    return "Gestione conforme agli standard di sostenibilità"
