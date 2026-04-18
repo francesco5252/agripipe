@@ -26,7 +26,14 @@ def test_presets_cover_at_least_ten_regions():
 def test_crops_biological_rules_exist():
     data = yaml.safe_load(Path("configs/agri_knowledge.yaml").read_text(encoding="utf-8"))
     crops = data.get("crops", {})
-    for crop_key in ["olive", "durum_wheat", "soft_wheat", "wine_grape_docg",
-                     "rice", "apple", "tomato"]:
+    for crop_key in [
+        "olive",
+        "durum_wheat",
+        "soft_wheat",
+        "wine_grape_docg",
+        "rice",
+        "apple",
+        "tomato",
+    ]:
         assert crop_key in crops, f"Missing biological rules for {crop_key}"
         assert "t_base" in crops[crop_key]
