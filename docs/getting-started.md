@@ -38,3 +38,15 @@ df = load_raw("mio_file.xlsx")
 cleaner = AgriCleaner.from_yaml("configs/default.yaml")
 df_clean = cleaner.clean(df)
 ```
+
+## 4. Struttura dei Dati Esportati
+
+Quando salvi i dati con il comando `run` (file `.pt`), AgriPipe crea un dizionario compatibile con PyTorch:
+
+| Chiave | Tipo | Descrizione |
+| :--- | :--- | :--- |
+| `features` | `torch.Tensor` | Matrice dei dati (Float32) normalizzati e codificati. |
+| `target` | `torch.Tensor` | Vettore del target (opzionale). |
+| `feature_names` | `list[str]` | Elenco ordinato dei nomi delle colonne corrispondenti alle `features`. |
+
+Questo permette di mantenere il contesto agronomico anche dopo la conversione in numeri.

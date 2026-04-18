@@ -75,6 +75,30 @@ from torch.utils.data import DataLoader
 loader = DataLoader(dataset, batch_size=32, shuffle=True)
 ```
 
+## 🤖 Integrazione con PyTorch
+
+Il file `.pt` generato da AgriPipe è un pacchetto pronto all'uso. Ecco come caricarlo e utilizzarlo nel tuo script di addestramento:
+
+```python
+import torch
+
+# Carica il pacchetto generato da AgriPipe
+data = torch.load("out/tensors.pt")
+
+features = data["features"]       # Tensor [N, D] pronto per il modello
+target = data["target"]           # Tensor [N] (opzionale)
+column_names = data["feature_names"]  # Lista dei nomi delle colonne (es. ['temp', 'umidità', ...])
+
+print(f"Dataset caricato con {features.shape[1]} variabili: {column_names}")
+
+# Esempio: Creazione di un modello lineare semplice
+input_dim = features.shape[1]
+model = torch.nn.Linear(input_dim, 1)
+
+# Passaggio dei dati (Inference/Training)
+output = model(features)
+```
+
 ## 🏗 Architettura
 
 ```mermaid
