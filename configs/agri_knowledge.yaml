@@ -45,7 +45,7 @@ regional_presets:
 
   # --- VITE ---
   vite_piemontese:
-    crop: "wine_grape"
+    crop: "wine_grape_docg"
     zona: "Langhe / Roero"
     suolo_tessitura: "Marne / Argille calcaree"
     max_yield: 8.0
@@ -53,3 +53,39 @@ regional_presets:
     harvest_months: [9, 10]
     ideal_ph: [7.0, 8.0]
     note: "Grandi vini rossi (DOCG), focus su microclimi di collina."
+
+# --- REGOLE BIOLOGICHE PER COLTURA ---
+# Consumate da cleaner._apply_agronomic_rules via self.knowledge["crops"].
+crops:
+  olive:
+    t_base: 10.0
+    max_yield: 12.0
+    flowering_months: [5, 6]
+    frost_danger_months: [3, 4]
+    critical_temp_flowering: 35
+
+  durum_wheat:
+    t_base: 0.0
+    max_yield: 6.0
+    flowering_months: [4, 5]
+    frost_danger_months: [3]
+    critical_temp_flowering: 32
+
+  soft_wheat:
+    t_base: 0.0
+    max_yield: 10.0
+    flowering_months: [5]
+    frost_danger_months: [3, 4]
+    critical_temp_flowering: 30
+
+  wine_grape_docg:
+    t_base: 10.0
+    max_yield: 14.0
+    flowering_months: [5, 6]
+    frost_danger_months: [4]
+    critical_temp_flowering: 38
+    rule_10_temp: 10
+    rule_10_rain: 10
+
+general:
+  min_organic_matter: 1.5
