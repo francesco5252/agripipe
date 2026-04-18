@@ -1,7 +1,7 @@
-site_name: AgriPipe
-site_description: Data pipeline per dati agronomici Excel tensor PyTorch
-site_author: Francesco
-repo_url: https://github.com/francesco5252/agripipe
+site_name: "AgriPipe"
+site_description: "AgriPipe: Data pipeline per dati agronomici Excel tensor PyTorch"
+site_author: "Francesco"
+repo_url: "https://github.com/francesco5252/agripipe"
 
 theme:
   name: material
