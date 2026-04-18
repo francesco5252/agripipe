@@ -55,12 +55,12 @@ def test_save_metadata_json_writes_valid_json(tmp_path: Path):
     assert loaded["schema_version"] == 1
 
 
-def test_metadata_includes_agronomic_context():
+def test_metadata_includes_pipeline_context():
     df, ds = _prepare_dataset()
-    preset = {"region": "Puglia", "crop": "olive", "zona": "Salento"}
+    preset = {"region": "Puglia", "crop": "olive", "crop_display": "Olivo DOP"}
     meta = build_metadata(ds, preset, {}, target="yield")
-    assert meta["agronomic_context"]["crop"] == "olive"
-    assert meta["agronomic_context"]["region"] == "Puglia"
+    assert meta["pipeline_context"]["preset_applied"] == "Olivo DOP"
+    assert meta["pipeline_context"]["region"] == "Puglia"
 
 
 def test_metadata_has_pytorch_example_code():

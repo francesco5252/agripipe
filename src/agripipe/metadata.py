@@ -90,17 +90,9 @@ def build_metadata(
             "task": "regression" if target else "unsupervised",
         },
         "columns": columns,
-        "agronomic_context": {
-            "crop": preset.get("crop", "unknown"),
-            "crop_display": preset.get("crop_display", ""),
+        "pipeline_context": {
+            "preset_applied": preset.get("crop_display", "custom"),
             "region": preset.get("region", "unknown"),
-            "zona": preset.get("zona", ""),
-            "cleaning_rules": [
-                "Direttiva Nitrati (soglia azoto)",
-                "Regola Tre 10 (peronospora vite)",
-                "Coerenza pioggia/umidità",
-                "Imputazione time-series",
-            ],
         },
         "cleaning_stats": cleaner_diagnostics,
         "pytorch_usage": {

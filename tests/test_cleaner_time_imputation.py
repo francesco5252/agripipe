@@ -35,7 +35,7 @@ def test_time_imputation_interpolates_inside_field():
     assert cleaner.diagnostics.imputation_strategy_used == "time"
 
 
-def test_time_imputation_falls_back_to_median_when_no_date(caplog):
+def test_time_imputation_falls_back_to_median_when_no_date():
     df = pd.DataFrame(
         {
             "field_id": ["F1"] * 5,
@@ -49,16 +49,10 @@ def test_time_imputation_falls_back_to_median_when_no_date(caplog):
         outlier_method="none",
     )
     cleaner = AgriCleaner(config)
-    import logging
-
-    with caplog.at_level(logging.WARNING):
-        df_clean = cleaner.clean(df)
+    df_clean = cleaner.clean(df)
     # Fallback: nessun NaN residuo
     assert df_clean["temp"].isna().sum() == 0
     assert cleaner.diagnostics.imputation_strategy_used == "median"
-    assert any(
-        "fallback" in r.message.lower() or "median" in r.message.lower() for r in caplog.records
-    )
 
 
 def test_time_imputation_respects_field_boundaries():

@@ -1,27 +1,24 @@
 # 🌱 AgriPipe
 
-[![CI](https://github.com/yourusername/agripipe/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/agripipe/actions/workflows/ci.yml)
+[![CI](https://github.com/francesco5252/agripipe/actions/workflows/ci.yml/badge.svg)](https://github.com/francesco5252/agripipe/actions/workflows/ci.yml)
 [![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**AgriPipe** è una pipeline ETL (Extract, Transform, Load) professionale per il settore agronomico. Converte file Excel "sporchi" in **ML Bundles** (tensori PyTorch + metadati) pronti per il team di Data Science, garantendo al contempo la sostenibilità e la qualità del dato.
+**AgriPipe** è una pipeline ETL (Extract, Transform, Load) professionale per il settore agronomico. Converte file Excel "sporchi" in **ML Bundles** (tensori PyTorch + metadati) pronti per l'addestramento di modelli di Machine Learning, garantendo la massima qualità e integrità del dato numerico.
 
-## 🌟 Novità Versione Pro
+## 🌟 Architettura ML-Ops
 
-- **Atlante Agronomico**: 12 preset regionali pre-configurati (es. *Olivo DOP Ligure*, *Vite Barolo DOCG*, *Riso Carnaroli*) che applicano regole biologiche e fisiche iper-localizzate.
-- **Sustainability Score Card**: Calcolo automatico di indici di sostenibilità (Nitrogen Use Efficiency, Stress Idrico, Salute del Suolo) con visualizzazione a badge (Verde/Arancio/Rosso).
-- **ML Bundle Exporter**: Genera automaticamente un pacchetto `.zip` contenente i tensori `.pt`, lo scaler normalizzato e un file `metadata.json` auto-documentato.
-- **Indici Avanzati**: Calcolo integrato di Gradi Giorno (GDD), Indice di Huglin e Drought Score a 7 giorni.
-- **Interfaccia "Clean & Nature"**: Nuova UI Streamlit moderna, intuitiva e focalizzata sul valore agronomico.
+- **Fase 1: Ingestione Infallibile**: Caricamento di Excel/CSV con validazione rigorosa degli schemi tramite Pydantic.
+- **Fase 2: Raffineria Dati**: Pulizia statistica automatica, rimozione outlier (IQR/Z-Score) e imputazione intelligente dei dati mancanti (anche tramite interpolazione temporale).
+- **Fase 3: Tensorizzazione**: Conversione immediata in matrici PyTorch `float32` perfettamente scalate, con salvataggio dei parametri di normalizzazione per l'inferenza.
+- **ML Bundle Exporter**: Genera un pacchetto `.zip` auto-documentato con tensori, metadati JSON e configurazione dello scaler.
 
 ## 🚀 Funzionalità Chiave
 
-- **Validazione Rigorosa**: Utilizzo di **Pydantic** per garantire che i dati carichi rispettino lo schema atteso.
-- **Pulizia Intelligente**: Gestione automatica di outlier (IQR, Z-Score), valori mancanti e violazioni dei limiti fisici (es. pH o umidità fuori range).
-- **ML-Ready**: Trasformazione immediata in `torch.Tensor` con scaling (Standard/MinMax) e Label Encoding persistibili.
-- **Reporting**: Generazione automatica di report HTML per confrontare i dati grezzi con quelli puliti.
-- **Configurazione YAML**: Tutta la logica di pulizia è definita in file di configurazione separati dal codice.
-- **Logging Professionale**: Supporto per log su console e su file con livelli di dettaglio configurabili.
+- **Validazione Schemi**: Controllo immediato di tipi e colonne obbligatorie.
+- **Integrità Fisica**: Rimozione di letture sensoriali impossibili basata su preset regionali (12 preset inclusi).
+- **ML-Ready**: Trasformazione in `torch.Tensor` con StandardScaler persistibile.
+- **Reporting Ingegneristico**: Grafici di distribuzione prima/dopo per validare visivamente il processo di pulizia.
 
 ## 🛠 Installazione
 
@@ -34,83 +31,41 @@ cd agripipe
 pip install -e ".[dev]"
 ```
 
-## 💻 Utilizzo CLI (Pro)
+## 💻 Utilizzo CLI (Pure Pipeline)
 
-AgriPipe Pro offre opzioni avanzate per velocizzare il workflow:
+AgriPipe offre un'interfaccia a riga di comando ottimizzata per workflow automatizzati:
 
-### 1. Eseguire con un Preset Regionale
+### 1. Generazione Tensor con Preset
 ```bash
-agripipe run --input dati.xlsx --preset ulivo_pugliese --report report.html
+agripipe run --input dati.xlsx --preset ulivo_pugliese --output model_input.pt
 ```
 
-### 2. Esportare un ML Bundle Completo
+### 2. Export Bundle ML Completo
 ```bash
-agripipe run -i dati.xlsx -p vite_piemontese -o out/model.pt --export-ml ./bundles
-# Crea model.pt, model.json e model.zip (pronto per la consegna)
+agripipe run -i dati.xlsx -p vite_piemontese -e ./export
+# Genera .pt, .json e .zip pronti per il caricamento in script di training
 ```
 
-### 3. Generare Dati di Test Pro
+### 3. Generazione Dati Sintetici
 ```bash
-# Genera un file ricco di colonne di sostenibilità (Azoto, Suolo, Pioggia)
-python -m agripipe.cli generate --output data/pro_sample.xlsx
-```
-
-## 🐍 Utilizzo Python API
-
-```python
-from agripipe.loader import load_raw
-from agripipe.cleaner import AgriCleaner
-
-# 1. Caricamento
-df = load_raw("dati_campo.xlsx")
-
-# 2. Pulizia usando un preset territoriale
-cleaner = AgriCleaner.from_preset("prosecco_veneto")
-df_clean = cleaner.clean(df)
-
-# 3. Accedi ai dati di sostenibilità
-stats = cleaner.diagnostics
-print(f"Anomalie corrette: {stats.values_imputed}")
+agripipe generate --rows 1000 --output data/synthetic.xlsx
 ```
 
 ## 🤖 Il Bundle ML (.zip)
 
-Il team di Data Science riceve un pacchetto completo:
+Il pacchetto d'uscita è progettato per i team di Data Science:
 1. `model.pt`: Tensor di features (normalizzate) e target.
-2. `model.json`: Documentazione automatica di ogni colonna e contesto agronomico.
+2. `model.json`: Documentazione automatica di ogni colonna e statistiche di pulizia.
 3. Esempio di caricamento PyTorch incluso nei metadati.
 
-## 🏗 Architettura
+## 🏗 Workflow Tecnico
 
 ```mermaid
 graph TD
-    A[Excel/CSV] --> B[Loader: Schema Validation]
-    B --> C[Cleaner: Agronomic Rules & Presets]
-    C --> D[Indices: GDD, Huglin, Sustainability]
-    D --> E[Export: PT + JSON + ZIP]
-    D --> F[Report: HTML & ScoreCard]
-```
-
-## 📖 Documentazione
-
-La documentazione completa, inclusi i riferimenti API e la guida alla configurazione, è disponibile localmente:
-
-```bash
-mkdocs serve
-```
-Poi visita `http://127.0.0.1:8000`.
-
-## 🧪 Sviluppo e Test
-
-Il progetto segue standard di qualità elevati con una copertura dei test superiore all'80%.
-
-```bash
-# Esegui tutti i test (inclusi i test di integrazione E2E)
-pytest
-
-# Controllo formattazione
-ruff check src
-black --check src
+    A[Excel/CSV Grezzo] --> B[Loader: Schema Validation]
+    B --> C[Cleaner: Statistical Cleaning & Imputation]
+    C --> D[Export: PT + JSON + ZIP Bundle]
+    D --> E[PyTorch Training/Inference]
 ```
 
 ## 📄 Licenza

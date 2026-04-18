@@ -10,9 +10,6 @@ from typing import Iterable
 
 import streamlit as st
 
-from agripipe.sustainability import Badge
-from agripipe.ui.theme import BADGE_COLORS
-
 
 def render_hero(title: str = "🌱 AgriPipe",
                 subtitle: str = "Da Excel sporco a dati ML-ready in 30 secondi") -> None:
@@ -131,37 +128,6 @@ def render_download_row(
             use_container_width=True,
         )
         st.caption("Tensor PyTorch + metadata.json, pronti per training.")
-
-
-def render_scorecard(badges: dict[str, Badge], overall: str) -> None:
-    """Griglia 2×2 dei badge di sostenibilità + messaggio di sintesi.
-    
-    Args:
-        badges: Output di ``sustainability.compute_scorecard``.
-        overall: Output di ``sustainability.overall_message(badges)``.
-    """
-    keys = list(badges.keys())
-    rows = [keys[0:2], keys[2:4]]
-    for row_keys in rows:
-        cols = st.columns(2)
-        for col, key in zip(cols, row_keys):
-            b = badges[key]
-            color_hex = BADGE_COLORS[b.color]
-            with col:
-                st.markdown(
-                    f"""
-                    <div class="agri-badge" style="--badge-color: {color_hex}">
-                        <div class="agri-badge-header">
-                            <span class="agri-badge-dot"></span>
-                            <span>{b.icon} {b.name}</span>
-                        </div>
-                        <div class="agri-badge-headline">{b.headline}</div>
-                        <div class="agri-badge-tip">{b.tip}</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-    st.markdown(f'<div class="agri-overall">{overall}</div>', unsafe_allow_html=True)
 
 
 def render_before_after_plots(df_raw, df_clean) -> None:
