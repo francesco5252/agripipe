@@ -28,10 +28,12 @@ def test_diagnostics_has_all_expected_fields():
 def _synth_violations_df() -> pd.DataFrame:
     """DataFrame costruito ad hoc per generare violazioni note.
 
-    Ogni riga 0-2 triggera una regola distinta (no sovrapposizioni):
-    - riga 0: Peronospora (temp>10 + rain>10) + sostanza organica povera
+    Distribuzione delle violazioni per riga (ogni regola su righe separate
+    per evitare interazioni tra condizioni mutuamente esclusive):
+    - riga 0: Peronospora (temp>10 + rain>10) + sostanza organica povera (<1.5)
     - riga 1: concimazione azotata su suolo secco senza pioggia
     - riga 2: irrigazione inefficiente su suolo saturo
+    - righe 3-4: benigne (baseline, nessuna violazione)
     """
     return pd.DataFrame({
         "date": pd.date_range("2024-05-01", periods=5, freq="D"),
@@ -50,7 +52,6 @@ def _synth_violations_df() -> pd.DataFrame:
 
 
 def test_diagnostics_counts_peronospora():
-    from agripipe.cleaner import AgriCleaner, CleanerConfig
     config = CleanerConfig(
         numeric_columns=["temp", "rainfall", "humidity", "soil_moisture",
                          "irrigation", "n", "organic_matter", "ph", "yield"],
