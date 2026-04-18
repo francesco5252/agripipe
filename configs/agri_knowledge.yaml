@@ -4,7 +4,9 @@
 regional_presets:
   # --- OLIVO ---
   ulivo_ligure:
+    region: "Liguria"
     crop: "olive"
+    crop_display: "Olivo DOP Taggiasca"
     zona: "Liguria (Riviera)"
     suolo_tessitura: "Medio impasto / Scheletro"
     max_yield: 5.0            # Rese basse, alta qualità (olio DOP)
@@ -13,7 +15,9 @@ regional_presets:
     note: "Focus su terreni terrazzati e bassa meccanizzazione."
 
   ulivo_pugliese:
+    region: "Puglia"
     crop: "olive"
+    crop_display: "Olivo Intensivo (Salento)"
     zona: "Puglia (Salento/Bari)"
     suolo_tessitura: "Terra rossa / Calcareo"
     max_yield: 12.0           # Rese alte, impianti intensivi
@@ -24,7 +28,9 @@ regional_presets:
 
   # --- GRANO ---
   grano_siciliano:
+    region: "Sicilia"
     crop: "durum_wheat"
+    crop_display: "Grano Duro Antico Siciliano"
     zona: "Sicilia (Entroterra)"
     suolo_tessitura: "Argilloso (Vertisuoli)"
     max_yield: 4.5
@@ -34,7 +40,9 @@ regional_presets:
     note: "Grano duro antico, suoli pesanti e fessurati in estate."
 
   grano_emiliano:
+    region: "Emilia-Romagna"
     crop: "soft_wheat"
+    crop_display: "Grano Tenero Emiliano"
     zona: "Emilia-Romagna (Pianura Padana)"
     suolo_tessitura: "Limoso / Alluvionale"
     max_yield: 10.0
@@ -45,7 +53,9 @@ regional_presets:
 
   # --- VITE ---
   vite_piemontese:
+    region: "Piemonte"
     crop: "wine_grape_docg"
+    crop_display: "Vite Nebbiolo (Barolo DOCG)"
     zona: "Langhe / Roero"
     suolo_tessitura: "Marne / Argille calcaree"
     max_yield: 8.0
