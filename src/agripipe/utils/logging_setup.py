@@ -16,9 +16,9 @@ def setup_logging(
 ) -> None:
     """Configura il logging globale per l'applicazione."""
     global _CONFIGURED
-    
+
     handlers: list[logging.Handler] = [logging.StreamHandler(stream)]
-    
+
     if log_file:
         log_path = Path(log_file)
         log_path.parent.mkdir(parents=True, exist_ok=True)

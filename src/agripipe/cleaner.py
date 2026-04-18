@@ -93,11 +93,11 @@ class AgriCleaner:
         df = self._handle_outliers(df)
         df = self._impute_missing(df)
         df = self._deduplicate(df)
-        
+
         # Novità: Calcolo degli indici agronomici (GDD, Bilancio Idrico, etc.)
         df = compute_agronomic_indices(df, self.knowledge)
         logger.info("Indici agronomici calcolati con successo.")
-        
+
         logger.info("Pulizia completata: %d righe finali", len(df))
         return df
 
@@ -110,27 +110,37 @@ class AgriCleaner:
         date_col = next((c for c in ["date", "data"] if c in df.columns), None)
         rain_col = next((c for c in ["rainfall", "pioggia"] if c in df.columns), None)
         hum_col = next((c for c in ["humidity", "umidità"] if c in df.columns), None)
-        sal_col = next((c for c in ["salinity", "salinità", "ec"] if c in df.columns), None)
-        soil_moist_col = next((c for c in ["soil_moisture", "umidità_suolo"] if c in df.columns), None)
+        next((c for c in ["salinity", "salinità", "ec"] if c in df.columns), None)
+        soil_moist_col = next(
+            (c for c in ["soil_moisture", "umidità_suolo"] if c in df.columns), None
+        )
         temp_col = next((c for c in ["temp", "temperatura"] if c in df.columns), None)
         irrig_col = next((c for c in ["irrigation", "irrigazione"] if c in df.columns), None)
         n_col = next((c for c in ["n", "azoto"] if c in df.columns), None)
-        som_col = next((c for c in ["organic_matter", "sostanza_organica", "som"] if c in df.columns), None)
-        
-        if not crop_col: return df
+        som_col = next(
+            (c for c in ["organic_matter", "sostanza_organica", "som"] if c in df.columns), None
+        )
+
+        if not crop_col:
+            return df
 
         # --- A. COERENZA AMBIENTALE ---
         if rain_col and hum_col:
             mask = (df[rain_col] > 10) & (df[hum_col] < 40)
             if mask.any():
-                logger.warning("Coerenza: %d sensori umidità segnalati come guasti (piove ma <40%%).", int(mask.sum()))
+                logger.warning(
+                    "Coerenza: %d sensori umidità segnalati come guasti (piove ma <40%%).",
+                    int(mask.sum()),
+                )
                 df.loc[mask, hum_col] = np.nan
 
         # --- B. STRESS IDRICO ---
         if soil_moist_col and temp_col:
             mask = (df[temp_col] > 38) & (df[soil_moist_col] < 10)
             if mask.any():
-                logger.warning("Stress: %d eventi di calore estremo su suolo arido rilevati.", int(mask.sum()))
+                logger.warning(
+                    "Stress: %d eventi di calore estremo su suolo arido rilevati.", int(mask.sum())
+                )
 
         # --- C. CONCIMAZIONE SOSTENIBILE ---
         if n_col and (rain_col or soil_moist_col):
@@ -162,17 +172,24 @@ class AgriCleaner:
             mask = df[som_col] < min_som
             if mask.any():
                 count = int(mask.sum())
-                logger.warning("Salute: %d lotti con sostanza organica degradata (<%s%%).", count, min_som)
+                logger.warning(
+                    "Salute: %d lotti con sostanza organica degradata (<%s%%).", count, min_som
+                )
                 self.diagnostics.soil_organic_low += count
 
         # --- GELATE E MALATTIE (Specifiche per coltura) ---
         for crop_name, rules in self.knowledge["crops"].items():
             mask = df[crop_col].str.lower() == crop_name.lower()
-            if not mask.any(): continue
+            if not mask.any():
+                continue
 
             # Regola dei Tre 10 (Peronospora Vite)
             if crop_name == "wine_grape_docg" and temp_col and rain_col:
-                inf_mask = mask & (df[temp_col] > rules.get("rule_10_temp", 10)) & (df[rain_col] > rules.get("rule_10_rain", 10))
+                inf_mask = (
+                    mask
+                    & (df[temp_col] > rules.get("rule_10_temp", 10))
+                    & (df[rain_col] > rules.get("rule_10_rain", 10))
+                )
                 if inf_mask.any():
                     count = int(inf_mask.sum())
                     logger.warning("Malattia [It-Vite]: %d eventi a rischio Peronospora.", count)
@@ -182,7 +199,12 @@ class AgriCleaner:
             if "yield" in df.columns and "max_yield" in rules:
                 y_mask = mask & (df["yield"] > rules["max_yield"])
                 if y_mask.any():
-                    logger.info("Regola [It-%s]: %d rese impossibili (>%s t/ha)", crop_name, int(y_mask.sum()), rules["max_yield"])
+                    logger.info(
+                        "Regola [It-%s]: %d rese impossibili (>%s t/ha)",
+                        crop_name,
+                        int(y_mask.sum()),
+                        rules["max_yield"],
+                    )
                     df.loc[y_mask, "yield"] = np.nan
 
             # Colpo di calore in fioritura
@@ -192,7 +214,9 @@ class AgriCleaner:
                 h_mask = mask & m.isin(rules["flowering_months"]) & (df[temp_col] > ct)
                 if h_mask.any():
                     count = int(h_mask.sum())
-                    logger.warning("Stress [It-%s]: %d colpi di calore in fioritura.", crop_name, count)
+                    logger.warning(
+                        "Stress [It-%s]: %d colpi di calore in fioritura.", crop_name, count
+                    )
                     self.diagnostics.heat_stress_flowering += count
 
             # Gelo tardivo
@@ -203,14 +227,16 @@ class AgriCleaner:
                     count = int(f_mask.sum())
                     logger.warning("Gelo [It-%s]: %d gelate tardive rilevate.", crop_name, count)
                     self.diagnostics.late_frost_events += count
-        
+
         return df
 
     def _coerce_types(self, df: pd.DataFrame) -> pd.DataFrame:
         for col in self.config.date_columns:
-            if col in df.columns: df[col] = pd.to_datetime(df[col], errors="coerce")
+            if col in df.columns:
+                df[col] = pd.to_datetime(df[col], errors="coerce")
         for col in self.config.numeric_columns:
-            if col in df.columns: df[col] = pd.to_numeric(df[col], errors="coerce")
+            if col in df.columns:
+                df[col] = pd.to_numeric(df[col], errors="coerce")
         return df
 
     def _drop_sparse_columns(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -233,14 +259,19 @@ class AgriCleaner:
         return df
 
     def _handle_outliers(self, df: pd.DataFrame) -> pd.DataFrame:
-        if self.config.outlier_method == "none": return df
+        if self.config.outlier_method == "none":
+            return df
         for col in self.config.numeric_columns:
-            if col not in df.columns: continue
+            if col not in df.columns:
+                continue
             s = df[col]
             if self.config.outlier_method == "iqr":
                 q1, q3 = s.quantile([0.25, 0.75])
                 iqr = q3 - q1
-                lo, hi = q1 - self.config.outlier_iqr_multiplier * iqr, q3 + self.config.outlier_iqr_multiplier * iqr
+                lo, hi = (
+                    q1 - self.config.outlier_iqr_multiplier * iqr,
+                    q3 + self.config.outlier_iqr_multiplier * iqr,
+                )
             else:
                 mu, sigma = s.mean(), s.std()
                 lo, hi = mu - 3 * sigma, mu + 3 * sigma
@@ -278,18 +309,27 @@ class AgriCleaner:
         if strat == "drop":
             return df.dropna()
 
-        before_na = int(df[self.config.numeric_columns].isna().sum().sum()) \
-            if self.config.numeric_columns else 0
+        before_na = (
+            int(df[self.config.numeric_columns].isna().sum().sum())
+            if self.config.numeric_columns
+            else 0
+        )
         for col in self.config.numeric_columns:
-            if col not in df.columns: continue
-            if strat == "mean": df[col] = df[col].fillna(df[col].mean())
-            elif strat == "median": df[col] = df[col].fillna(df[col].median())
-            elif strat == "ffill": df[col] = df[col].ffill().bfill()
-        after_na = int(df[self.config.numeric_columns].isna().sum().sum()) \
-            if self.config.numeric_columns else 0
-        self.diagnostics.values_imputed += (before_na - after_na)
+            if col not in df.columns:
+                continue
+            if strat == "mean":
+                df[col] = df[col].fillna(df[col].mean())
+            elif strat == "median":
+                df[col] = df[col].fillna(df[col].median())
+            elif strat == "ffill":
+                df[col] = df[col].ffill().bfill()
+        after_na = (
+            int(df[self.config.numeric_columns].isna().sum().sum())
+            if self.config.numeric_columns
+            else 0
+        )
+        self.diagnostics.values_imputed += before_na - after_na
         return df
-
 
     def _impute_time(self, df: pd.DataFrame, date_col: str) -> pd.DataFrame:
         """Interpolazione temporale per-campo.
@@ -311,19 +351,22 @@ class AgriCleaner:
         df_indexed = df.set_index(date_col)
 
         for col in self.config.numeric_columns:
-            if col not in df_indexed.columns: continue
+            if col not in df_indexed.columns:
+                continue
             if field_col:
                 df_indexed[col] = df_indexed.groupby(field_col)[col].transform(
                     lambda s: s.interpolate(method="time", limit=3).ffill().bfill()
                 )
             else:
-                df_indexed[col] = df_indexed[col].interpolate(method="time", limit=3).ffill().bfill()
+                df_indexed[col] = (
+                    df_indexed[col].interpolate(method="time", limit=3).ffill().bfill()
+                )
 
         df = df_indexed.reset_index()
         df.index = original_index
 
         after_na = int(df[self.config.numeric_columns].isna().sum().sum())
-        self.diagnostics.values_imputed += (before_na - after_na)
+        self.diagnostics.values_imputed += before_na - after_na
         self.diagnostics.imputation_strategy_used = "time"
 
         if not field_col:
@@ -332,7 +375,8 @@ class AgriCleaner:
         return df
 
     def _deduplicate(self, df: pd.DataFrame) -> pd.DataFrame:
-        if not self.config.dedup_keys: return df.drop_duplicates()
+        if not self.config.dedup_keys:
+            return df.drop_duplicates()
         before = len(df)
         df = df.drop_duplicates(subset=self.config.dedup_keys, keep="last")
         logger.info("Deduplica: %d → %d righe", before, len(df))

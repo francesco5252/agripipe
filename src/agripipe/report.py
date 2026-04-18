@@ -24,14 +24,14 @@ def generate_report(
 
     # 1. Calcola statistiche testuali
     stats = _compute_stats(df_before, df_after)
-    
+
     # 2. Genera i grafici
     plots_html = _generate_plots(df_before, df_after)
-    
+
     # 3. Assembla l'HTML finale
     html = _render_html(stats, plots_html, title)
     output_path.write_text(html, encoding="utf-8")
-    
+
     logger.info("Report salvato con grafici: %s", output_path)
     return output_path
 
@@ -47,17 +47,20 @@ def _generate_plots(df_before: pd.DataFrame, df_after: pd.DataFrame) -> str:
     for col in numeric_cols:
         if col not in df_after.columns:
             continue
-            
+
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
-        
+
         # Grafico 1: Boxplot (per vedere gli outlier)
-        data_cmp = pd.concat([
-            df_before[[col]].assign(Stato="Grezzo (Prima)"),
-            df_after[[col]].assign(Stato="Pulito (Dopo)")
-        ], ignore_index=True)
+        data_cmp = pd.concat(
+            [
+                df_before[[col]].assign(Stato="Grezzo (Prima)"),
+                df_after[[col]].assign(Stato="Pulito (Dopo)"),
+            ],
+            ignore_index=True,
+        )
         sns.boxplot(data=data_cmp, x="Stato", y=col, ax=ax1, width=0.5)
         ax1.set_title(f"Outlier in '{col}'")
-        
+
         # Grafico 2: Istogramma (per vedere la distribuzione)
         sns.kdeplot(df_before[col], fill=True, label="Prima", ax=ax2, color="orange")
         sns.kdeplot(df_after[col], fill=True, label="Dopo", ax=ax2, color="green")
@@ -65,13 +68,13 @@ def _generate_plots(df_before: pd.DataFrame, df_after: pd.DataFrame) -> str:
         ax2.legend()
 
         plt.tight_layout()
-        
+
         # Salva in base64
         buf = io.BytesIO()
         plt.savefig(buf, format="png", dpi=100)
         plt.close(fig)
         data = base64.b64encode(buf.getbuffer()).decode("ascii")
-        
+
         html_snippets.append(f"""
         <div class="plot-container">
             <h3>Analisi Colonna: {col}</h3>

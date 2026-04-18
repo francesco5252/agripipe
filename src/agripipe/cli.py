@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-import logging
 
 import torch
 import typer
@@ -61,7 +60,10 @@ def run(
             {"features": ds.features, "target": ds.target, "feature_names": ds.feature_names},
             output,
         )
-        typer.secho(f"✓ Tensor salvati in {output} (shape={tuple(ds.features.shape)})", fg=typer.colors.GREEN)
+        typer.secho(
+            f"✓ Tensor salvati in {output} (shape={tuple(ds.features.shape)})",
+            fg=typer.colors.GREEN,
+        )
 
         if report:
             generate_report(df_raw, df_clean, report)
