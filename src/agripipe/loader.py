@@ -1,7 +1,22 @@
-"""Caricamento robusto di Excel agronomici grezzi."""
+"""Step 1 — Loader: carica Excel/CSV agronomici grezzi.
+
+Responsabilità minimali, una sola funzione pubblica: ``load_raw``.
+
+* Supporta Excel (``.xlsx``, ``.xls``) e CSV con separatori comuni (``,``, ``;``, TAB).
+* Salta righe di "spazzatura" iniziali (intestazioni aziendali, note) e individua
+  automaticamente la riga con l'header.
+* Calcola un fingerprint SHA-256 del file (tracciabilità del dato).
+* Valida lo schema: se mancano colonne obbligatorie ⇒ ``ValueError``.
+* Normalizza la colonna ``date`` a ``datetime``.
+
+NIENTE fuzzy mapping, conversione unità (Fahrenheit/pollici), batch-loading da
+cartella o auto-iniezione del ``field_id`` dal nome file — funzionalità rimosse
+per mantenere la pipeline prevedibile e facilmente debuggabile.
+"""
 
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 
 import pandas as pd
@@ -11,9 +26,28 @@ from agripipe.utils.logging_setup import get_logger
 
 logger = get_logger(__name__)
 
+# Sinonimi riconosciuti SOLO per individuare la riga dell'header nei file
+# con righe di intestazione aziendali prima del vero header.
+_HEADER_HINTS = {
+    "date",
+    "data",
+    "field_id",
+    "campo",
+    "temp",
+    "temperatura",
+    "humidity",
+    "umidità",
+    "umidita",
+    "ph",
+    "yield",
+    "resa",
+    "rainfall",
+    "pioggia",
+}
+
 
 class RawSchema(BaseModel):
-    """Schema atteso per il file di input. Adatta ai tuoi campi reali."""
+    """Schema minimo richiesto dalla pipeline."""
 
     required_columns: list[str] = Field(
         default_factory=lambda: ["date", "field_id", "temp", "humidity", "ph", "yield"]
@@ -25,41 +59,107 @@ def load_raw(
     sheet_name: str | int | None = 0,
     schema: RawSchema | None = None,
 ) -> pd.DataFrame:
-    """Carica e valida un file Excel/CSV agronomico.
+    """Carica un file agronomico grezzo e restituisce un DataFrame validato.
 
     Args:
-        path: Percorso al file ``.xlsx``, ``.xls``, o ``.csv``.
-        sheet_name: Foglio da leggere (default: primo).
-        schema: Schema di validazione; se ``None`` usa quello di default.
+        path: Percorso al file ``.xlsx``, ``.xls`` o ``.csv``.
+        sheet_name: Foglio Excel da leggere (default: primo foglio).
+        schema: Schema atteso. Se ``None`` usa ``RawSchema()`` di default.
 
     Returns:
-        DataFrame grezzo con tipi inferiti da pandas.
+        ``pandas.DataFrame`` con colonne validate. In ``df.attrs['file_hash']``
+        viene salvato lo SHA-256 del file sorgente.
 
     Raises:
-        FileNotFoundError: Se il path non esiste.
-        ValueError: Se mancano colonne obbligatorie o il file è vuoto.
+        FileNotFoundError: Se ``path`` non esiste.
+        ValueError: Se mancano colonne obbligatorie dallo schema.
     """
     path = Path(path)
     if not path.exists():
         raise FileNotFoundError(f"File non trovato: {path}")
 
     schema = schema or RawSchema()
-    logger.info("Carico %s (sheet=%s)", path, sheet_name)
+    logger.info("Caricamento: %s", path.name)
+    file_hash = _generate_file_hash(path)
 
-    df = pd.read_excel(path, sheet_name=sheet_name, engine="openpyxl")
+    if path.suffix.lower() == ".csv":
+        df = _load_csv_with_header_detection(path, schema.required_columns)
+    else:
+        df = _load_excel_with_header_detection(path, sheet_name, schema.required_columns)
 
-    missing = set(schema.required_columns) - set(df.columns)
+    # Normalizzazione nomi colonne: lower + strip spazi
+    df.columns = [str(c).strip().lower() for c in df.columns]
+
+    # Validazione schema — colonne obbligatorie presenti?
+    missing = [c for c in schema.required_columns if c not in df.columns]
     if missing:
         raise ValueError(f"Colonne mancanti nello schema: {missing}")
 
-    logger.info("Caricate %d righe, %d colonne", len(df), df.shape[1])
-    _log_quality_report(df)
+    df = _normalize_dates(df)
+    df.attrs["file_hash"] = file_hash
+    df.attrs["source_file"] = path.name
     return df
 
 
-def _log_quality_report(df: pd.DataFrame) -> None:
-    """Log sintetico di NaN, duplicati, tipi."""
-    nan_pct = (df.isna().sum() / len(df) * 100).round(2)
-    dup = df.duplicated().sum()
-    logger.info("NaN %% per colonna:\n%s", nan_pct.to_string())
-    logger.info("Righe duplicate: %d", dup)
+def _generate_file_hash(path: Path) -> str:
+    """Calcola lo SHA-256 di un file leggendolo a blocchi da 8 KiB."""
+    sha256 = hashlib.sha256()
+    with open(path, "rb") as f:
+        while chunk := f.read(8192):
+            sha256.update(chunk)
+    return sha256.hexdigest()
+
+
+def _find_header_row(df_no_header: pd.DataFrame, required: list[str]) -> int:
+    """Trova la riga che contiene l'header vero, saltando eventuale spazzatura."""
+    hints = _HEADER_HINTS.union(c.lower() for c in required)
+    best_row, max_matches = 0, -1
+    for i in range(min(15, len(df_no_header))):
+        row_values = [str(v).lower().strip() for v in df_no_header.iloc[i].dropna().values]
+        matches = sum(1 for v in row_values if v in hints)
+        if matches > max_matches:
+            max_matches, best_row = matches, i
+    return best_row
+
+
+def _load_excel_with_header_detection(
+    path: Path, sheet_name: str | int | None, required: list[str]
+) -> pd.DataFrame:
+    """Legge un Excel individuando la riga giusta da usare come header."""
+    raw = pd.read_excel(path, sheet_name=sheet_name or 0, engine="openpyxl", header=None)
+    header_idx = _find_header_row(raw, required)
+    return pd.read_excel(path, sheet_name=sheet_name or 0, engine="openpyxl", skiprows=header_idx)
+
+
+def _load_csv_with_header_detection(path: Path, required: list[str]) -> pd.DataFrame:
+    """Legge un CSV provando (encoding × separatore) finché uno "tiene"."""
+    last_err: Exception | None = None
+    for enc in ["utf-8", "latin1", "cp1252"]:
+        for sep in [",", ";", "\t"]:
+            try:
+                probe = pd.read_csv(path, sep=sep, encoding=enc, header=None)
+                if probe.shape[1] <= 1:
+                    continue
+                header_idx = _find_header_row(probe, required)
+                return pd.read_csv(path, sep=sep, encoding=enc, skiprows=header_idx)
+            except Exception as e:  # noqa: BLE001 — probing, errori attesi
+                last_err = e
+                continue
+    raise ValueError(f"Impossibile leggere il CSV {path.name}: {last_err}")
+
+
+def _normalize_dates(df: pd.DataFrame) -> pd.DataFrame:
+    """Converte la colonna ``date`` in ``datetime``; righe senza data valida via."""
+    if "date" not in df.columns:
+        return df
+
+    def _fix_excel_serial(v):
+        # Excel serial date (es. 45000) → datetime
+        if isinstance(v, (int, float)) and 30000 < v < 60000:
+            return pd.to_datetime(v, unit="D", origin="1899-12-30")
+        return v
+
+    df = df.copy()
+    df["date"] = df["date"].apply(_fix_excel_serial)
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    return df.dropna(subset=["date"]).reset_index(drop=True)

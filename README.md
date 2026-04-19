@@ -1,135 +1,71 @@
 # 🌱 AgriPipe
 
-[![CI](https://github.com/yourusername/agripipe/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/agripipe/actions/workflows/ci.yml)
+[![CI](https://github.com/francesco5252/agripipe/actions/workflows/ci.yml/badge.svg)](https://github.com/francesco5252/agripipe/actions/workflows/ci.yml)
 [![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**AgriPipe** è una pipeline ETL (Extract, Transform, Load) specializzata per il settore agronomico. È progettata per risolvere il problema comune dei dati "sporchi" in formato Excel, convertendoli in tensori PyTorch pronti per l'addestramento di modelli di Machine Learning.
+**AgriPipe** è una pipeline ETL (Extract, Transform, Load) professionale per il settore agronomico. Converte file Excel "sporchi" in **ML Bundles** (tensori PyTorch + metadati) pronti per l'addestramento di modelli di Machine Learning, garantendo la massima qualità e integrità del dato numerico.
+
+## 🌟 Architettura ML-Ops
+
+- **Fase 1: Ingestione Infallibile**: Caricamento di Excel/CSV con validazione rigorosa degli schemi tramite Pydantic.
+- **Fase 2: Raffineria Dati**: Pulizia statistica automatica, rimozione outlier (IQR/Z-Score) e imputazione intelligente dei dati mancanti (anche tramite interpolazione temporale).
+- **Fase 3: Tensorizzazione**: Conversione immediata in matrici PyTorch `float32` perfettamente scalate, con salvataggio dei parametri di normalizzazione per l'inferenza.
+- **ML Bundle Exporter**: Genera un pacchetto `.zip` auto-documentato con tensori, metadati JSON e configurazione dello scaler.
 
 ## 🚀 Funzionalità Chiave
 
-- **Validazione Rigorosa**: Utilizzo di **Pydantic** per garantire che i dati carichi rispettino lo schema atteso.
-- **Pulizia Intelligente**: Gestione automatica di outlier (IQR, Z-Score), valori mancanti e violazioni dei limiti fisici (es. pH o umidità fuori range).
-- **ML-Ready**: Trasformazione immediata in `torch.Tensor` con scaling (Standard/MinMax) e Label Encoding persistibili.
-- **Reporting**: Generazione automatica di report HTML per confrontare i dati grezzi con quelli puliti.
-- **Configurazione YAML**: Tutta la logica di pulizia è definita in file di configurazione separati dal codice.
-- **Logging Professionale**: Supporto per log su console e su file con livelli di dettaglio configurabili.
+- **Validazione Schemi**: Controllo immediato di tipi e colonne obbligatorie.
+- **Integrità Fisica**: Rimozione di letture sensoriali impossibili basata su preset regionali (12 preset inclusi).
+- **ML-Ready**: Trasformazione in `torch.Tensor` con StandardScaler persistibile.
+- **Reporting Ingegneristico**: Grafici di distribuzione prima/dopo per validare visivamente il processo di pulizia.
 
 ## 🛠 Installazione
 
 ```bash
 # Clonazione repository
-git clone https://github.com/yourusername/agripipe.git
+git clone https://github.com/francesco5252/agripipe.git
 cd agripipe
 
 # Installazione in modalità sviluppo
 pip install -e ".[dev]"
 ```
 
-## 💻 Utilizzo CLI
+## 💻 Utilizzo CLI (Pure Pipeline)
 
-AgriPipe offre un'interfaccia a riga di comando potente e intuitiva.
+AgriPipe offre un'interfaccia a riga di comando ottimizzata per workflow automatizzati:
 
-### 1. Eseguire la Pipeline Completa
+### 1. Generazione Tensor con Preset
 ```bash
-agripipe run --input data/raw.xlsx --output out/tensors.pt --report out/report.html
+agripipe run --input dati.xlsx --preset ulivo_pugliese --output model_input.pt
 ```
 
-### 2. Validare la Configurazione
+### 2. Export Bundle ML Completo
 ```bash
-agripipe check --config configs/default.yaml
+agripipe run -i dati.xlsx -p vite_piemontese -e ./export
+# Genera .pt, .json e .zip pronti per il caricamento in script di training
 ```
 
-### 3. Generare Dati Sintetici (per Test)
+### 3. Generazione Dati Sintetici
 ```bash
-agripipe generate --rows 1000 --output data/test_data.xlsx
+agripipe generate --rows 1000 --output data/synthetic.xlsx
 ```
 
-### 4. Opzioni Globali
-- `--log-file path/to/log.txt`: Salva l'esecuzione su file.
-- `--verbose / -v`: Abilita i log di debug.
+## 🤖 Il Bundle ML (.zip)
 
-## 🐍 Utilizzo Python API
+Il pacchetto d'uscita è progettato per i team di Data Science:
+1. `model.pt`: Tensor di features (normalizzate) e target.
+2. `model.json`: Documentazione automatica di ogni colonna e statistiche di pulizia.
+3. Esempio di caricamento PyTorch incluso nei metadati.
 
-```python
-from agripipe.loader import load_raw
-from agripipe.cleaner import AgriCleaner
-from agripipe.dataset import AgriDataset
-
-# 1. Caricamento
-df = load_raw("dati_campo.xlsx")
-
-# 2. Pulizia
-cleaner = AgriCleaner.from_yaml("configs/default.yaml")
-df_clean = cleaner.clean(df)
-
-# 3. Dataset PyTorch
-dataset = AgriDataset(
-    df_clean, 
-    numeric_columns=["temp", "humidity"], 
-    target="yield"
-)
-
-# 4. Pronto per il DataLoader
-from torch.utils.data import DataLoader
-loader = DataLoader(dataset, batch_size=32, shuffle=True)
-```
-
-## 🤖 Integrazione con PyTorch
-
-Il file `.pt` generato da AgriPipe è un pacchetto pronto all'uso. Ecco come caricarlo e utilizzarlo nel tuo script di addestramento:
-
-```python
-import torch
-
-# Carica il pacchetto generato da AgriPipe
-data = torch.load("out/tensors.pt")
-
-features = data["features"]       # Tensor [N, D] pronto per il modello
-target = data["target"]           # Tensor [N] (opzionale)
-column_names = data["feature_names"]  # Lista dei nomi delle colonne (es. ['temp', 'umidità', ...])
-
-print(f"Dataset caricato con {features.shape[1]} variabili: {column_names}")
-
-# Esempio: Creazione di un modello lineare semplice
-input_dim = features.shape[1]
-model = torch.nn.Linear(input_dim, 1)
-
-# Passaggio dei dati (Inference/Training)
-output = model(features)
-```
-
-## 🏗 Architettura
+## 🏗 Workflow Tecnico
 
 ```mermaid
 graph TD
-    A[Excel/CSV] --> B[Loader: Pydantic Validation]
-    B --> C[Cleaner: Outliers & NaNs]
-    C --> D[Report: HTML Quality Check]
-    C --> E[Tensorizer: Scaling & Encoding]
-    E --> F[PyTorch Tensors]
-```
-
-## 📖 Documentazione
-
-La documentazione completa, inclusi i riferimenti API e la guida alla configurazione, è disponibile localmente:
-
-```bash
-mkdocs serve
-```
-Poi visita `http://127.0.0.1:8000`.
-
-## 🧪 Sviluppo e Test
-
-Il progetto segue standard di qualità elevati con una copertura dei test superiore all'80%.
-
-```bash
-# Esegui tutti i test (inclusi i test di integrazione E2E)
-pytest
-
-# Controllo formattazione
-ruff check src
-black --check src
+    A[Excel/CSV Grezzo] --> B[Loader: Schema Validation]
+    B --> C[Cleaner: Statistical Cleaning & Imputation]
+    C --> D[Export: PT + JSON + ZIP Bundle]
+    D --> E[PyTorch Training/Inference]
 ```
 
 ## 📄 Licenza

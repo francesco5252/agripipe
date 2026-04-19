@@ -1,4 +1,8 @@
-"""`torch.utils.data.Dataset` per integrazione diretta con DataLoader."""
+"""``torch.utils.data.Dataset`` costruito sopra un DataFrame pulito.
+
+Wrapper leggero attorno a ``Tensorizer``: espone feature/target come tensor
+e fornisce ``__getitem__`` standard, compatibile con ``DataLoader``.
+"""
 
 from __future__ import annotations
 
@@ -10,21 +14,7 @@ from agripipe.tensorizer import Tensorizer
 
 
 class AgriDataset(Dataset):
-    """PyTorch Dataset costruito sopra un DataFrame già pulito.
-
-    Wrapper leggero attorno a ``Tensorizer`` che espone ``__len__`` e
-    ``__getitem__`` per l'uso con ``torch.utils.data.DataLoader``.
-
-    Attributes:
-        tensorizer: Istanza di ``Tensorizer`` fit sui dati.
-        features: Tensor 2D ``[N, D]`` float32, già normalizzato.
-        target: Tensor 1D ``[N]`` o None per dataset unsupervised.
-        feature_names: Ordine delle colonne nelle features.
-
-    Example:
-        >>> ds = AgriDataset(df_clean, numeric_columns=["temp", "ph"], target="yield")
-        >>> loader = DataLoader(ds, batch_size=32, shuffle=True)
-    """
+    """PyTorch ``Dataset`` per dati agronomici puliti."""
 
     def __init__(
         self,
@@ -32,18 +22,28 @@ class AgriDataset(Dataset):
         numeric_columns: list[str],
         categorical_columns: list[str] | None = None,
         target: str | None = None,
-        target_dtype: str = "float32",
+        categorical_strategy: str = "label",
+        scaling_strategy: str = "standard",
+        split_ratios: tuple[float, float, float] | None = None,
     ):
         self.tensorizer = Tensorizer(
             numeric_columns=numeric_columns,
             categorical_columns=categorical_columns or [],
             target=target,
-            target_dtype=target_dtype,
+            scaling_strategy=scaling_strategy,
+            categorical_strategy=categorical_strategy,
         )
-        bundle = self.tensorizer.fit_transform(df)
+        self.df = df
+        self.target_col = target
+
+        bundle = self.tensorizer.fit_transform(df, split_ratios=split_ratios)
         self.features = bundle.features
         self.target = bundle.target
         self.feature_names = bundle.feature_names
+        self.metadata = bundle.metadata
+        self.train_indices = bundle.train_indices
+        self.val_indices = bundle.val_indices
+        self.test_indices = bundle.test_indices
 
     def __len__(self) -> int:
         return self.features.shape[0]

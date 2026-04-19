@@ -1,4 +1,19 @@
-"""Pulizia automatica: missing, outlier, deduplica, type coercion."""
+"""Step 2 — Cleaner: pulizia statistica dei dati agronomici.
+
+Nessuna regola agronomica interpretativa: il Cleaner è un filtro oggettivo.
+
+Pipeline (``AgriCleaner.clean``):
+
+1. **Coercizione tipi** — stringhe numeriche "stile IT" (``"12,5"``) → ``float``.
+2. **Limiti fisici** — valori fuori range definito dall'utente → ``NaN``
+   (es. ``pH < 0`` o ``pH > 14`` è impossibile).
+3. **Outlier IQR / Z-Score** — anomalie statistiche marcate ``NaN``.
+4. **Imputazione** — ``mean`` / ``median`` / ``ffill`` / ``drop`` / ``time``
+   (interpolazione temporale con fallback automatico alla mediana se manca
+   la colonna data).
+5. **Imputazione categorica** — ``ffill`` + ``bfill`` ordinato per data.
+6. **Deduplicazione** — rimozione righe duplicate sulle chiavi richieste.
+"""
 
 from __future__ import annotations
 
@@ -10,25 +25,28 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from agripipe.indices import compute_agronomic_indices
 from agripipe.utils.logging_setup import get_logger
 
 logger = get_logger(__name__)
 
 ImputationStrategy = Literal["mean", "median", "ffill", "drop", "time"]
+OutlierMethod = Literal["iqr", "zscore", "none"]
 
 
 @dataclass
 class CleanerConfig:
-    """Configurazione della pulizia. Serializzabile da YAML."""
+    """Configurazione del Cleaner. Tutti i campi sono opzionali.
+
+    ``numeric_columns`` vuota ⇒ auto-detect delle colonne numeriche al runtime.
+    """
 
     numeric_columns: list[str] = field(default_factory=list)
     categorical_columns: list[str] = field(default_factory=list)
     date_columns: list[str] = field(default_factory=list)
     dedup_keys: list[str] = field(default_factory=list)
     missing_strategy: ImputationStrategy = "median"
-    missing_drop_threshold: float = 0.5  # drop colonna se >50% NaN
-    outlier_method: Literal["iqr", "zscore", "none"] = "iqr"
+    missing_drop_threshold: float = 0.5
+    outlier_method: OutlierMethod = "iqr"
     outlier_iqr_multiplier: float = 1.5
     physical_bounds: dict[str, tuple[float, float]] = field(default_factory=dict)
     knowledge_path: str = "configs/agri_knowledge.yaml"
@@ -36,321 +54,224 @@ class CleanerConfig:
 
 @dataclass
 class CleanerDiagnostics:
-    """Conteggi raccolti durante la pulizia per la Sustainability Score Card.
-
-    Popolato da ``AgriCleaner.clean()`` e consumato da
-    ``sustainability.compute_scorecard`` e ``metadata.build_metadata``.
-    Non influenza il comportamento del cleaner: è solo esposizione dati.
-    """
+    """Contatori d'integrità calcolati durante ``clean``."""
 
     total_rows: int = 0
+    current_preset_name: str | None = None
     imputation_strategy_used: str = ""
     values_imputed: int = 0
     outliers_removed: int = 0
     out_of_bounds_removed: int = 0
-    nitrogen_violations: int = 0
-    peronospora_events: int = 0
-    irrigation_inefficient: int = 0
-    soil_organic_low: int = 0
-    heat_stress_flowering: int = 0
-    late_frost_events: int = 0
+    duplicates_removed: int = 0
 
 
 class AgriCleaner:
-    """Pipeline di pulizia configurabile per dati agronomici."""
+    """Pipeline di pulizia statistica per dati agronomici.
+
+    Esempio:
+        >>> from agripipe.cleaner import AgriCleaner, CleanerConfig
+        >>> cleaner = AgriCleaner(CleanerConfig(numeric_columns=["temp", "ph"]))
+        >>> df_clean = cleaner.clean(df_raw)
+    """
 
     def __init__(self, config: CleanerConfig):
         self.config = config
         self.knowledge = self._load_knowledge()
         self.diagnostics = CleanerDiagnostics()
 
-    def _load_knowledge(self) -> dict:
-        path = Path(self.config.knowledge_path)
-        if not path.exists():
-            logger.warning("Cervello agronomico non trovato in %s", path)
-            return {}
-        with open(path, "r", encoding="utf-8") as f:
-            return yaml.safe_load(f)
+    # ---- factory helpers ---------------------------------------------------
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> "AgriCleaner":
-        """Istanzia da file YAML."""
-        with open(path) as f:
-            raw = yaml.safe_load(f)
-        if "physical_bounds" in raw:
-            raw["physical_bounds"] = {k: tuple(v) for k, v in raw["physical_bounds"].items()}
-        return cls(CleanerConfig(**raw))
+        """Carica la configurazione del Cleaner da un file YAML."""
+        path = Path(path)
+        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        # physical_bounds nel YAML arriva come dict[str, list[2]] — convertiamo a tupla.
+        bounds = data.get("physical_bounds") or {}
+        data["physical_bounds"] = {k: tuple(v) for k, v in bounds.items()}
+        return cls(CleanerConfig(**data))
+
+    @classmethod
+    def from_preset(
+        cls,
+        preset_name: str,
+        knowledge_path: str = "configs/agri_knowledge.yaml",
+    ) -> "AgriCleaner":
+        """Carica bounds fisici dal preset regionale nell'``agri_knowledge.yaml``."""
+        path = Path(knowledge_path)
+        knowledge = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+        preset_data = knowledge.get("regional_presets", {}).get(preset_name)
+        if not preset_data:
+            raise ValueError(f"Preset '{preset_name}' non trovato in {path}.")
+
+        config = CleanerConfig(
+            knowledge_path=str(path),
+            date_columns=["date"],
+            dedup_keys=["field_id", "date"],
+            categorical_columns=["crop_type", "field_id"],
+        )
+        if "temp_range" in preset_data:
+            lo, hi = preset_data["temp_range"]
+            config.physical_bounds["temp"] = (float(lo), float(hi))
+        if "ideal_ph" in preset_data:
+            lo, hi = preset_data["ideal_ph"]
+            config.physical_bounds["ph"] = (float(lo), float(hi))
+
+        inst = cls(config)
+        inst.diagnostics.current_preset_name = preset_name
+        return inst
+
+    def _load_knowledge(self) -> dict:
+        path = Path(self.config.knowledge_path)
+        if not path.exists():
+            return {}
+        return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+
+    # ---- main API ----------------------------------------------------------
 
     def clean(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Applica l'intera pipeline di pulizia e calcola gli indici agronomici."""
-        self.diagnostics = CleanerDiagnostics(total_rows=len(df))
-        logger.info("Avvio pulizia intelligente su %d righe", len(df))
+        """Esegue la pipeline di pulizia e ritorna un DataFrame pulito.
+
+        ``self.diagnostics`` viene popolato con i contatori di ogni fase.
+
+        Args:
+            df: DataFrame grezzo (già caricato via ``load_raw``).
+
+        Returns:
+            DataFrame pulito con (idealmente) zero NaN nelle colonne numeriche.
+        """
+        preset_name = self.diagnostics.current_preset_name  # preservato tra run
+        self.diagnostics = CleanerDiagnostics(total_rows=len(df), current_preset_name=preset_name)
         df = df.copy()
+
+        # Auto-detect colonne numeriche se non specificate
+        if not self.config.numeric_columns:
+            self.config.numeric_columns = df.select_dtypes(include=[np.number]).columns.tolist()
+
         df = self._coerce_types(df)
+        df = self._impute_categorical(df)
         df = self._drop_sparse_columns(df)
-        df = self._apply_agronomic_rules(df)
         df = self._apply_physical_bounds(df)
         df = self._handle_outliers(df)
         df = self._impute_missing(df)
         df = self._deduplicate(df)
-
-        # Novità: Calcolo degli indici agronomici (GDD, Bilancio Idrico, etc.)
-        df = compute_agronomic_indices(df, self.knowledge)
-        logger.info("Indici agronomici calcolati con successo.")
-
-        logger.info("Pulizia completata: %d righe finali", len(df))
         return df
 
-    def _apply_agronomic_rules(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Valida i dati usando regole biologiche, stagionali e di sostenibilità."""
-        if not self.knowledge or "crops" not in self.knowledge:
-            return df
-
-        crop_col = next((c for c in ["crop_type", "crop", "coltura"] if c in df.columns), None)
-        date_col = next((c for c in ["date", "data"] if c in df.columns), None)
-        rain_col = next((c for c in ["rainfall", "pioggia"] if c in df.columns), None)
-        hum_col = next((c for c in ["humidity", "umidità"] if c in df.columns), None)
-        next((c for c in ["salinity", "salinità", "ec"] if c in df.columns), None)
-        soil_moist_col = next(
-            (c for c in ["soil_moisture", "umidità_suolo"] if c in df.columns), None
-        )
-        temp_col = next((c for c in ["temp", "temperatura"] if c in df.columns), None)
-        irrig_col = next((c for c in ["irrigation", "irrigazione"] if c in df.columns), None)
-        n_col = next((c for c in ["n", "azoto"] if c in df.columns), None)
-        som_col = next(
-            (c for c in ["organic_matter", "sostanza_organica", "som"] if c in df.columns), None
-        )
-
-        if not crop_col:
-            return df
-
-        # --- A. COERENZA AMBIENTALE ---
-        if rain_col and hum_col:
-            mask = (df[rain_col] > 10) & (df[hum_col] < 40)
-            if mask.any():
-                logger.warning(
-                    "Coerenza: %d sensori umidità segnalati come guasti (piove ma <40%%).",
-                    int(mask.sum()),
-                )
-                df.loc[mask, hum_col] = np.nan
-
-        # --- B. STRESS IDRICO ---
-        if soil_moist_col and temp_col:
-            mask = (df[temp_col] > 38) & (df[soil_moist_col] < 10)
-            if mask.any():
-                logger.warning(
-                    "Stress: %d eventi di calore estremo su suolo arido rilevati.", int(mask.sum())
-                )
-
-        # --- C. CONCIMAZIONE SOSTENIBILE ---
-        if n_col and (rain_col or soil_moist_col):
-            dry_soil = df[soil_moist_col] < 15 if soil_moist_col else True
-            no_rain = df[rain_col] < 2 if rain_col else True
-            mask = (df[n_col] > 10) & dry_soil & no_rain
-            if mask.any():
-                count = int(mask.sum())
-                logger.warning("Sostenibilità: %d concimazioni su terreno troppo secco.", count)
-                self.diagnostics.nitrogen_violations += count
-
-        # --- D. RISTAGNO IDRICO ---
-        if rain_col and soil_moist_col:
-            mask = (df[rain_col] > 150) & (df[soil_moist_col] > 90)
-            if mask.any():
-                logger.warning("Ristagno: %d zone a rischio soffocamento radici.", int(mask.sum()))
-
-        # --- E. EFFICIENZA IDRICA ---
-        if irrig_col and soil_moist_col:
-            mask = (df[irrig_col] > 5) & (df[soil_moist_col] > 85)
-            if mask.any():
-                count = int(mask.sum())
-                logger.warning("Efficienza: %d irrigazioni inutili su suolo saturo.", count)
-                self.diagnostics.irrigation_inefficient += count
-
-        # --- F. SALUTE SUOLO ---
-        if som_col:
-            min_som = self.knowledge.get("general", {}).get("min_organic_matter", 1.5)
-            mask = df[som_col] < min_som
-            if mask.any():
-                count = int(mask.sum())
-                logger.warning(
-                    "Salute: %d lotti con sostanza organica degradata (<%s%%).", count, min_som
-                )
-                self.diagnostics.soil_organic_low += count
-
-        # --- GELATE E MALATTIE (Specifiche per coltura) ---
-        for crop_name, rules in self.knowledge["crops"].items():
-            mask = df[crop_col].str.lower() == crop_name.lower()
-            if not mask.any():
-                continue
-
-            # Regola dei Tre 10 (Peronospora Vite)
-            if crop_name == "wine_grape_docg" and temp_col and rain_col:
-                inf_mask = (
-                    mask
-                    & (df[temp_col] > rules.get("rule_10_temp", 10))
-                    & (df[rain_col] > rules.get("rule_10_rain", 10))
-                )
-                if inf_mask.any():
-                    count = int(inf_mask.sum())
-                    logger.warning("Malattia [It-Vite]: %d eventi a rischio Peronospora.", count)
-                    self.diagnostics.peronospora_events += count
-
-            # Resa
-            if "yield" in df.columns and "max_yield" in rules:
-                y_mask = mask & (df["yield"] > rules["max_yield"])
-                if y_mask.any():
-                    logger.info(
-                        "Regola [It-%s]: %d rese impossibili (>%s t/ha)",
-                        crop_name,
-                        int(y_mask.sum()),
-                        rules["max_yield"],
-                    )
-                    df.loc[y_mask, "yield"] = np.nan
-
-            # Colpo di calore in fioritura
-            if date_col and temp_col and "flowering_months" in rules:
-                m = pd.to_datetime(df[date_col]).dt.month
-                ct = rules.get("critical_temp_flowering", 35)
-                h_mask = mask & m.isin(rules["flowering_months"]) & (df[temp_col] > ct)
-                if h_mask.any():
-                    count = int(h_mask.sum())
-                    logger.warning(
-                        "Stress [It-%s]: %d colpi di calore in fioritura.", crop_name, count
-                    )
-                    self.diagnostics.heat_stress_flowering += count
-
-            # Gelo tardivo
-            if date_col and temp_col and "frost_danger_months" in rules:
-                m = pd.to_datetime(df[date_col]).dt.month
-                f_mask = mask & m.isin(rules["frost_danger_months"]) & (df[temp_col] < 0)
-                if f_mask.any():
-                    count = int(f_mask.sum())
-                    logger.warning("Gelo [It-%s]: %d gelate tardive rilevate.", crop_name, count)
-                    self.diagnostics.late_frost_events += count
-
-        return df
+    # ---- private stages ----------------------------------------------------
 
     def _coerce_types(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Date → ``datetime``; numerici "12,5"/"12.5" → ``float``."""
         for col in self.config.date_columns:
             if col in df.columns:
                 df[col] = pd.to_datetime(df[col], errors="coerce")
         for col in self.config.numeric_columns:
             if col in df.columns:
+                # Supporta numeri in formato italiano ("12,5") convertendo la virgola
+                if df[col].dtype == object:
+                    df[col] = df[col].apply(
+                        lambda v: str(v).replace(",", ".") if isinstance(v, str) else v
+                    )
                 df[col] = pd.to_numeric(df[col], errors="coerce")
         return df
 
     def _drop_sparse_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Rimuove colonne con % NaN oltre ``missing_drop_threshold``."""
         nan_ratio = df.isna().mean()
         to_drop = nan_ratio[nan_ratio > self.config.missing_drop_threshold].index.tolist()
-        if to_drop:
-            logger.warning("Drop colonne sparse: %s", to_drop)
-            df = df.drop(columns=to_drop)
-        return df
+        return df.drop(columns=to_drop) if to_drop else df
 
     def _apply_physical_bounds(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Valori fuori dai limiti fisici dell'utente → ``NaN``."""
         for col, (lo, hi) in self.config.physical_bounds.items():
             if col in df.columns:
                 mask = (df[col] < lo) | (df[col] > hi)
-                if mask.any():
-                    count = int(mask.sum())
-                    logger.warning("%s: %d fuori range fisico [%s, %s] → NaN", col, count, lo, hi)
+                n_bad = int(mask.sum())
+                if n_bad:
                     df.loc[mask, col] = np.nan
-                    self.diagnostics.out_of_bounds_removed += count
+                    self.diagnostics.out_of_bounds_removed += n_bad
         return df
 
     def _handle_outliers(self, df: pd.DataFrame) -> pd.DataFrame:
-        if self.config.outlier_method == "none":
+        """Outlier via IQR o Z-Score → ``NaN``."""
+        method = self.config.outlier_method
+        if method == "none":
             return df
         for col in self.config.numeric_columns:
             if col not in df.columns:
                 continue
-            s = df[col]
-            if self.config.outlier_method == "iqr":
+            s = df[col].dropna()
+            if len(s) < 10:
+                continue
+            if method == "zscore":
+                mean, std = s.mean(), s.std()
+                if std == 0:
+                    continue
+                mask = ((df[col] - mean).abs() / std) > 3.0
+            else:  # iqr
                 q1, q3 = s.quantile([0.25, 0.75])
                 iqr = q3 - q1
-                lo, hi = (
-                    q1 - self.config.outlier_iqr_multiplier * iqr,
-                    q3 + self.config.outlier_iqr_multiplier * iqr,
-                )
-            else:
-                mu, sigma = s.mean(), s.std()
-                lo, hi = mu - 3 * sigma, mu + 3 * sigma
-            mask = (s < lo) | (s > hi)
-            if mask.any():
-                count = int(mask.sum())
-                logger.info("%s: %d outlier → NaN", col, count)
+                k = self.config.outlier_iqr_multiplier
+                lo, hi = q1 - k * iqr, q3 + k * iqr
+                mask = (df[col] < lo) | (df[col] > hi)
+            n_bad = int(mask.sum())
+            if n_bad:
                 df.loc[mask, col] = np.nan
-                self.diagnostics.outliers_removed += count
+                self.diagnostics.outliers_removed += n_bad
+        return df
+
+    def _impute_categorical(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Colonne categoriche: ``ffill`` + ``bfill`` ordinato per data."""
+        date_col = next((c for c in ["date", "data"] if c in df.columns), None)
+        if not date_col:
+            return df
+        sort_idx = df[date_col].argsort(kind="mergesort")
+        for col in self.config.categorical_columns:
+            if col in df.columns:
+                filled = df[col].iloc[sort_idx].ffill().bfill()
+                df[col] = filled.reindex(df.index)
         return df
 
     def _impute_missing(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Imputa i valori mancanti secondo la strategia configurata.
+        """Imputazione numerica. ``time`` con fallback a mediana se manca data."""
+        cols = [c for c in self.config.numeric_columns if c in df.columns]
+        if not cols:
+            self.diagnostics.imputation_strategy_used = self.config.missing_strategy
+            return df
 
-        Per ``strategy="time"`` richiede una colonna ``date``. Se manca, effettua
-        fallback a ``median`` con log di warning (scelta di design D1: robustezza
-        sopra la rigorosità).
-        """
-        strat = self.config.missing_strategy
+        strat: str = self.config.missing_strategy
+        date_col = next((c for c in ["date", "data"] if c in df.columns), None)
+        if strat == "time" and not date_col:
+            logger.info("Strategia 'time' richiesta ma nessuna colonna data: fallback a 'median'.")
+            strat = "median"
 
-        if strat == "time":
-            date_col = next((c for c in ["date", "data"] if c in df.columns), None)
-            if not date_col or len(df) < 3:
-                logger.warning(
-                    "Strategia 'time' richiede colonna date e >=3 righe; "
-                    "fallback automatico a 'median'."
-                )
-                strat = "median"
-                self.diagnostics.imputation_strategy_used = "median"
-            else:
-                return self._impute_time(df, date_col)
-
-        self.diagnostics.imputation_strategy_used = strat
+        before_na = int(df[cols].isna().sum().sum())
 
         if strat == "drop":
-            return df.dropna()
+            df = df.dropna(subset=cols).reset_index(drop=True)
+        elif strat == "time":
+            df = self._impute_time(df, cols, date_col)  # type: ignore[arg-type]
+        else:
+            for col in cols:
+                if strat == "mean":
+                    fill = df[col].mean()
+                elif strat == "ffill":
+                    df[col] = df[col].ffill().bfill()
+                    continue
+                else:  # median (default)
+                    fill = df[col].median()
+                df[col] = df[col].fillna(fill)
 
-        before_na = (
-            int(df[self.config.numeric_columns].isna().sum().sum())
-            if self.config.numeric_columns
-            else 0
-        )
-        for col in self.config.numeric_columns:
-            if col not in df.columns:
-                continue
-            if strat == "mean":
-                df[col] = df[col].fillna(df[col].mean())
-            elif strat == "median":
-                df[col] = df[col].fillna(df[col].median())
-            elif strat == "ffill":
-                df[col] = df[col].ffill().bfill()
-        after_na = (
-            int(df[self.config.numeric_columns].isna().sum().sum())
-            if self.config.numeric_columns
-            else 0
-        )
-        self.diagnostics.values_imputed += before_na - after_na
+        after_na = int(df[cols].isna().sum().sum()) if strat != "drop" else 0
+        self.diagnostics.values_imputed += max(0, before_na - after_na)
+        self.diagnostics.imputation_strategy_used = strat
         return df
 
-    def _impute_time(self, df: pd.DataFrame, date_col: str) -> pd.DataFrame:
-        """Interpolazione temporale per-campo.
-
-        Ordina per (field, date), interpola ``method="time"`` con ``limit=3``,
-        chiude i bordi con ``ffill().bfill()``. Raggruppa per ``field_id`` per
-        non mischiare campi diversi.
-        """
-        field_col = next((c for c in ["field_id", "campo", "lotto"] if c in df.columns), None)
-
-        df = df.copy()
-        df[date_col] = pd.to_datetime(df[date_col])
-        sort_cols = [field_col, date_col] if field_col else [date_col]
-        df = df.sort_values(sort_cols).reset_index(drop=True)
-
-        before_na = int(df[self.config.numeric_columns].isna().sum().sum())
-
-        original_index = df.index
+    def _impute_time(self, df: pd.DataFrame, cols: list[str], date_col: str) -> pd.DataFrame:
+        """Interpolazione temporale per campo (resta dentro il field_id)."""
+        field_col = next((c for c in ["field_id", "campo"] if c in df.columns), None)
+        df = df.sort_values(date_col).copy()
         df_indexed = df.set_index(date_col)
-
-        for col in self.config.numeric_columns:
+        for col in cols:
             if col not in df_indexed.columns:
                 continue
             if field_col:
@@ -361,23 +282,16 @@ class AgriCleaner:
                 df_indexed[col] = (
                     df_indexed[col].interpolate(method="time", limit=3).ffill().bfill()
                 )
-
-        df = df_indexed.reset_index()
-        df.index = original_index
-
-        after_na = int(df[self.config.numeric_columns].isna().sum().sum())
-        self.diagnostics.values_imputed += before_na - after_na
-        self.diagnostics.imputation_strategy_used = "time"
-
-        if not field_col:
-            logger.warning("Imputazione 'time' senza field_id: interpolazione globale.")
-
-        return df
+        # Fallback finale: mediana per eventuali residui
+        for col in cols:
+            if col in df_indexed.columns and df_indexed[col].isna().any():
+                df_indexed[col] = df_indexed[col].fillna(df_indexed[col].median())
+        return df_indexed.reset_index()
 
     def _deduplicate(self, df: pd.DataFrame) -> pd.DataFrame:
-        if not self.config.dedup_keys:
-            return df.drop_duplicates()
+        """Rimuove duplicati sulle ``dedup_keys``."""
+        keys = [k for k in self.config.dedup_keys if k in df.columns]
         before = len(df)
-        df = df.drop_duplicates(subset=self.config.dedup_keys, keep="last")
-        logger.info("Deduplica: %d → %d righe", before, len(df))
+        df = df.drop_duplicates(subset=keys if keys else None, keep="last").reset_index(drop=True)
+        self.diagnostics.duplicates_removed = before - len(df)
         return df
