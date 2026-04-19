@@ -15,7 +15,7 @@ from agripipe.report import generate_report
 from agripipe.synth import SynthConfig, generate_dirty_excel
 from agripipe.utils.logging_setup import get_logger
 
-app = typer.Typer(help="AgriPipe Pro: Excel agronomici → ML Bundles & Reports.")
+app = typer.Typer(help="AgriPipe Pro: Excel agronomici -> ML Bundles & Reports.")
 logger = get_logger(__name__)
 
 
@@ -37,7 +37,7 @@ def run(
         None, "--export-ml", "-e", help="Esporta bundle ML completo (.zip) in questa cartella."
     ),
 ) -> None:
-    """Esegue l'intera pipeline: load → clean → tensorize → save/export."""
+    """Esegue l'intera pipeline: load -> clean -> tensorize -> save/export."""
     try:
         logger.info("=== AgriPipe run ===")
 
