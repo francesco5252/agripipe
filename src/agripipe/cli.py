@@ -47,7 +47,9 @@ def run(
             typer.secho(f"✓ Preset regionale: {preset}", fg=typer.colors.CYAN)
         elif config:
             if not config.exists():
-                typer.secho(f"❌ Configurazione non trovata: {config}", fg=typer.colors.RED, err=True)
+                typer.secho(
+                    f"❌ Configurazione non trovata: {config}", fg=typer.colors.RED, err=True
+                )
                 raise typer.Exit(code=1)
             cleaner = AgriCleaner.from_yaml(config)
         else:
@@ -83,9 +85,7 @@ def run(
         if export_ml:
             # Recuperiamo il preset dict per il metadata
             preset_dict = cleaner.knowledge.get("regional_presets", {}).get(preset or "", {})
-            paths = export_ml_bundle(
-                df_clean, cleaner, preset_dict, export_ml, target=target_col
-            )
+            paths = export_ml_bundle(df_clean, cleaner, preset_dict, export_ml, target=target_col)
             typer.secho(f"✓ Bundle ML esportato in {paths['zip']}", fg=typer.colors.GREEN)
 
         if report:

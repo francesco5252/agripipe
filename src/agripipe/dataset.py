@@ -1,4 +1,8 @@
-"""`torch.utils.data.Dataset` per integrazione diretta con DataLoader."""
+"""``torch.utils.data.Dataset`` costruito sopra un DataFrame pulito.
+
+Wrapper leggero attorno a ``Tensorizer``: espone feature/target come tensor
+e fornisce ``__getitem__`` standard, compatibile con ``DataLoader``.
+"""
 
 from __future__ import annotations
 
@@ -10,7 +14,7 @@ from agripipe.tensorizer import Tensorizer
 
 
 class AgriDataset(Dataset):
-    """PyTorch Dataset costruito sopra un DataFrame già pulito."""
+    """PyTorch ``Dataset`` per dati agronomici puliti."""
 
     def __init__(
         self,
@@ -21,8 +25,6 @@ class AgriDataset(Dataset):
         categorical_strategy: str = "label",
         scaling_strategy: str = "standard",
         split_ratios: tuple[float, float, float] | None = None,
-        precision: str = "float32",
-        target_dtype: str = "float32",
     ):
         self.tensorizer = Tensorizer(
             numeric_columns=numeric_columns,
@@ -30,12 +32,11 @@ class AgriDataset(Dataset):
             target=target,
             scaling_strategy=scaling_strategy,
             categorical_strategy=categorical_strategy,
-            precision=precision
         )
         self.df = df
         self.target_col = target
+
         bundle = self.tensorizer.fit_transform(df, split_ratios=split_ratios)
-        
         self.features = bundle.features
         self.target = bundle.target
         self.feature_names = bundle.feature_names

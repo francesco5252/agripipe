@@ -1,7 +1,8 @@
-"""Costruzione e salvataggio del file metadata.json che accompagna il tensor .pt.
+"""Costruzione e salvataggio del ``metadata.json`` che accompagna il tensor ``.pt``.
 
-Serve da "manuale d'uso" del dataset per il team Data Science di X Farm:
-spiega ogni colonna, il contesto agronomico, e mostra un esempio PyTorch.
+Il file metadata è il "manuale d'uso" del dataset per il team Data Science di
+X Farm: elenca ogni colonna, la sua unità, i parametri dello scaler e un
+esempio PyTorch pronto al copia-incolla.
 """
 
 from __future__ import annotations
@@ -11,45 +12,37 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
+
 from agripipe.dataset import AgriDataset
 
 SCHEMA_VERSION = 1
 
 _COLUMN_DESCRIPTIONS = {
-    "temp":        ("°C",       "Temperatura media giornaliera"),
-    "temperatura": ("°C",       "Temperatura media giornaliera"),
-    "humidity":    ("%",        "Umidità relativa aria"),
-    "umidità":     ("%",        "Umidità relativa aria"),
-    "rainfall":    ("mm",       "Precipitazione giornaliera"),
-    "pioggia":     ("mm",       "Precipitazione giornaliera"),
-    "ph":          ("pH",       "Acidità del suolo"),
-    "yield":       ("t/ha",     "Resa colturale"),
-    "resa":        ("t/ha",     "Resa colturale"),
-    "n":           ("kg/ha",    "Concimazione azotata"),
-    "azoto":       ("kg/ha",    "Concimazione azotata"),
-    "soil_moisture": ("%",      "Umidità del suolo"),
-    "irrigation":  ("mm",       "Irrigazione applicata"),
-    "organic_matter": ("%",     "Sostanza organica del suolo"),
-    "gdd_daily":       ("°C·d", "Gradi Giorno giornalieri"),
-    "gdd_accumulated": ("°C·d", "Gradi Giorno cumulati"),
-    "huglin_index":    ("idx",  "Indice di Huglin (qualità vitivinicola)"),
-    "huglin_daily":    ("idx",  "Contributo Huglin giornaliero"),
-    "daily_wb":        ("mm",   "Bilancio idrico giornaliero"),
-    "drought_7d_score":("mm",   "Indice di siccità cumulata a 7 giorni"),
-    "n_efficiency":    ("t/kg", "Efficienza dell'azoto (NUE)"),
+    "temp": ("°C", "Temperatura media giornaliera"),
+    "temperatura": ("°C", "Temperatura media giornaliera"),
+    "humidity": ("%", "Umidità relativa aria"),
+    "umidità": ("%", "Umidità relativa aria"),
+    "rainfall": ("mm", "Precipitazione giornaliera"),
+    "pioggia": ("mm", "Precipitazione giornaliera"),
+    "ph": ("pH", "Acidità del suolo"),
+    "yield": ("t/ha", "Resa colturale"),
+    "resa": ("t/ha", "Resa colturale"),
+    "n": ("kg/ha", "Concimazione azotata"),
+    "azoto": ("kg/ha", "Concimazione azotata"),
+    "soil_moisture": ("%", "Umidità del suolo"),
+    "irrigation": ("mm", "Irrigazione applicata"),
+    "organic_matter": ("%", "Sostanza organica del suolo"),
 }
 
 
 def _describe_column(name: str, index: int) -> dict:
-    unit, description = _COLUMN_DESCRIPTIONS.get(
-        name.lower(), ("",  f"Colonna {name}")
-    )
+    unit, description = _COLUMN_DESCRIPTIONS.get(name.lower(), ("", f"Colonna {name}"))
     return {
         "name": name,
         "index": index,
         "unit": unit,
         "description": description,
-        "normalized": True,  # Tensorizer applica StandardScaler di default
+        "normalized": True,  # Tensorizer applica sempre uno scaler
     }
 
 
@@ -60,20 +53,24 @@ def build_metadata(
     target: str | None = None,
     name: str = "agripipe_export",
 ) -> dict:
-    """Costruisce il dizionario metadata con profili statistici avanzati.
-    
-    Include: info dataset, descrizioni colonne, contesto pipeline,
-    statistiche descrittive (mean, std, min, max) e matrice di correlazione.
+    """Costruisce il dizionario metadata del bundle ML.
+
+    Args:
+        dataset: ``AgriDataset`` addestrato (contiene features/target + scaler).
+        preset: Dict del preset regionale applicato (o ``{}``).
+        cleaner_diagnostics: ``asdict(cleaner.diagnostics)``.
+        target: Nome della colonna target (``None`` = task non supervisionato).
+        name: Nome del bundle (comparirà in ``dataset_info.name``).
+
+    Returns:
+        Dict pronto per essere serializzato in JSON.
     """
     n_rows = dataset.features.shape[0]
     n_features = dataset.features.shape[1]
-    
-    # 1. Statistiche Descrittive (usando il DataFrame originale del dataset se disponibile o calcolando dai tensor)
-    # Per semplicità e precisione, le calcoliamo qui come dizionario
-    columns_stats = []
-    # Trasformiamo il tensor in array per calcoli veloci
+
+    # Statistiche per colonna (dal tensor già scalato)
     X = dataset.features.numpy()
-    
+    columns_stats = []
     for i, col_name in enumerate(dataset.feature_names):
         col_data = X[:, i]
         desc = _describe_column(col_name, i)
@@ -85,14 +82,13 @@ def build_metadata(
         }
         columns_stats.append(desc)
 
-    # 2. Matrice di Correlazione (solo se abbiamo più di una colonna)
-    correlation_map = {}
+    # Correlazioni fra feature
+    correlation_map: dict[str, dict[str, float]] = {}
     if n_features > 1:
         corr_matrix = np.corrcoef(X, rowvar=False)
         for i, col_i in enumerate(dataset.feature_names):
             correlation_map[col_i] = {
-                col_j: float(corr_matrix[i, j]) 
-                for j, col_j in enumerate(dataset.feature_names)
+                col_j: float(corr_matrix[i, j]) for j, col_j in enumerate(dataset.feature_names)
             }
 
     return {
@@ -107,24 +103,23 @@ def build_metadata(
             "task": "regression" if target else "unsupervised",
             "file_fingerprint_sha256": dataset.df.attrs.get("file_hash", "unknown"),
             "schema_lock_hash": dataset.metadata.get("schema_lock_hash", "unknown"),
-            "precision": dataset.metadata.get("precision", "float32"),
         },
         "columns": columns_stats,
         "correlations": correlation_map,
-        "data_integrity_report": dataset.df.attrs.get("integrity_report", {}),
         "split_info": {
             "is_split": dataset.train_indices is not None,
             "counts": {
                 "train": len(dataset.train_indices) if dataset.train_indices else 0,
                 "val": len(dataset.val_indices) if dataset.val_indices else 0,
                 "test": len(dataset.test_indices) if dataset.test_indices else 0,
-                "total": len(dataset)
+                "total": len(dataset),
             },
-            "ratios": dataset.metadata.get("split_ratios", "none")
+            "ratios": dataset.metadata.get("split_ratios", "none"),
         },
         "pipeline_context": {
             "preset_applied": preset.get("crop_display", "custom"),
             "region": preset.get("region", "unknown"),
+            "scaler_params": dataset.metadata.get("scaler_params", {}),
             "categorical_mappings": dataset.tensorizer.get_categorical_mappings(),
         },
         "cleaning_stats": cleaner_diagnostics,
@@ -132,10 +127,9 @@ def build_metadata(
             "example_code": (
                 "import torch\n"
                 "from torch.utils.data import TensorDataset, DataLoader\n\n"
-                "bundle = torch.load('agripipe_export.pt')\n"
+                "bundle = torch.load('agripipe_export.pt', weights_only=False)\n"
                 "features, target = bundle['features'], bundle['target']\n"
-                "loader = DataLoader(TensorDataset(features, target), batch_size=32, shuffle=True)\n"
-                "# features è già normalizzato (StandardScaler): passa direttamente alla rete."
+                "loader = DataLoader(TensorDataset(features, target), batch_size=32, shuffle=True)"
             ),
         },
     }
@@ -143,11 +137,11 @@ def build_metadata(
 
 def save_metadata_json(metadata: dict, path: str | Path) -> Path:
     """Scrive il dict metadata su disco come JSON UTF-8 indentato.
-    
+
     Args:
         metadata: Output di ``build_metadata``.
         path: Destinazione (cartelle create se mancanti).
-    
+
     Returns:
         Path al file scritto.
     """

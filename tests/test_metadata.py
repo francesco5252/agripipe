@@ -4,19 +4,19 @@ import json
 from pathlib import Path
 
 import pandas as pd
-import torch
 
-from agripipe.cleaner import AgriCleaner, CleanerConfig
 from agripipe.dataset import AgriDataset
 from agripipe.metadata import build_metadata, save_metadata_json
 
 
 def _prepare_dataset():
-    df = pd.DataFrame({
-        "temp": [20.0, 22.0, 24.0],
-        "humidity": [60.0, 65.0, 70.0],
-        "yield": [5.0, 6.0, 7.0],
-    })
+    df = pd.DataFrame(
+        {
+            "temp": [20.0, 22.0, 24.0],
+            "humidity": [60.0, 65.0, 70.0],
+            "yield": [5.0, 6.0, 7.0],
+        }
+    )
     ds = AgriDataset(df=df, numeric_columns=["temp", "humidity"], target="yield")
     return df, ds
 

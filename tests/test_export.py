@@ -12,11 +12,13 @@ from agripipe.export import export_ml_bundle
 
 
 def _clean_df_and_cleaner():
-    df = pd.DataFrame({
-        "temp": [20.0, 22.0, 24.0, 26.0, 28.0],
-        "humidity": [60.0, 65.0, 70.0, 75.0, 80.0],
-        "yield": [5.0, 6.0, 7.0, 8.0, 9.0],
-    })
+    df = pd.DataFrame(
+        {
+            "temp": [20.0, 22.0, 24.0, 26.0, 28.0],
+            "humidity": [60.0, 65.0, 70.0, 75.0, 80.0],
+            "yield": [5.0, 6.0, 7.0, 8.0, 9.0],
+        }
+    )
     config = CleanerConfig(
         numeric_columns=["temp", "humidity", "yield"],
         outlier_method="none",
