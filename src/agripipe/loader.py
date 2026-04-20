@@ -54,17 +54,23 @@ class RawSchema(BaseModel):
     )
 
 
+import yaml
+
+
 def load_raw(
     path: str | Path,
     sheet_name: str | int | None = 0,
     schema: RawSchema | None = None,
+    fuzzy: bool = False,
 ) -> pd.DataFrame:
     """Carica un file agronomico grezzo e restituisce un DataFrame validato.
 
     Args:
         path: Percorso al file ``.xlsx``, ``.xls`` o ``.csv``.
         sheet_name: Foglio Excel da leggere (default: primo foglio).
-        schema: Schema atteso. Se ``None`` usa ``RawSchema()`` di default.
+        schema: Schema atteso. Se ``None`` usa ``RawSchema()``.
+        fuzzy: Se ``True``, prova a riconoscere i nomi delle colonne tramite
+            fuzzy matching e sinonimi (es: "Temperatura" -> "temp").
 
     Returns:
         ``pandas.DataFrame`` con colonne validate. In ``df.attrs['file_hash']``
@@ -86,6 +92,23 @@ def load_raw(
         df = _load_csv_with_header_detection(path, schema.required_columns)
     else:
         df = _load_excel_with_header_detection(path, sheet_name, schema.required_columns)
+
+    if fuzzy:
+        from agripipe.matching import fuzzy_rename_columns
+
+        syn_path = Path("configs/column_synonyms.yaml")
+        synonyms, threshold = {}, 85
+        if syn_path.exists():
+            with open(syn_path, encoding="utf-8") as f:
+                cfg = yaml.safe_load(f)
+                synonyms = cfg.get("synonyms", {})
+                threshold = cfg.get("threshold", 85)
+
+        df, report = fuzzy_rename_columns(
+            df, schema.required_columns, synonyms=synonyms, threshold=threshold
+        )
+        if report:
+            logger.info("Fuzzy mapping applicato: %s", report)
 
     # Normalizzazione nomi colonne: lower + strip spazi
     df.columns = [str(c).strip().lower() for c in df.columns]
@@ -173,6 +196,7 @@ def batch_load_raw(
     sheet_name: str | int | None = 0,
     schema: RawSchema | None = None,
     on_error: Literal["raise", "skip"] = "raise",
+    fuzzy: bool = False,
 ) -> pd.DataFrame:
     """Carica tutti gli Excel/CSV di una cartella e li concatena.
 
@@ -210,7 +234,7 @@ def batch_load_raw(
 
     for f in files:
         try:
-            df = load_raw(f, sheet_name=sheet_name, schema=schema)
+            df = load_raw(f, sheet_name=sheet_name, schema=schema, fuzzy=fuzzy)
             df["source_file"] = f.name
             all_dfs.append(df)
         except Exception as e:

@@ -41,6 +41,9 @@ def run(
     export_ml: Path | None = typer.Option(
         None, "--export-ml", "-e", help="Esporta bundle ML completo (.zip) in questa cartella."
     ),
+    fuzzy: bool = typer.Option(
+        False, "--fuzzy", help="Abilita fuzzy matching dei nomi colonna."
+    ),
 ) -> None:
     """Esegue l'intera pipeline: load -> clean -> tensorize -> save/export."""
     try:
@@ -62,9 +65,9 @@ def run(
             raise typer.Exit(code=1)
 
         if input_dir:
-            df_raw = batch_load_raw(input_dir)
+            df_raw = batch_load_raw(input_dir, fuzzy=fuzzy)
         elif input:
-            df_raw = load_raw(input)
+            df_raw = load_raw(input, fuzzy=fuzzy)
         else:
             typer.secho("❌ Fornire --input o --input-dir.", fg=typer.colors.RED, err=True)
             raise typer.Exit(code=1)

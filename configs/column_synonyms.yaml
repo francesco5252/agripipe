@@ -1,0 +1,49 @@
+# Dizionario dei sinonimi per il fuzzy matching dei nomi colonna.
+# Formato: nome_canonico: [lista_di_sinonimi_o_varianti]
+
+threshold: 85
+
+synonyms:
+  date:
+    - data
+    - data_rilevazione
+    - timestamp
+    - giorno
+    - date_recorded
+  field_id:
+    - campo
+    - appezzamento
+    - id_campo
+    - lotto
+    - field
+    - plot_id
+  temp:
+    - temperatura
+    - temperature
+    - temp_c
+    - t_aria
+    - air_temp
+  humidity:
+    - umidità
+    - umidita
+    - humidity
+    - rh
+    - relative_humidity
+    - umidità_relativa
+  ph:
+    - ph_suolo
+    - soil_ph
+    - acidità
+    - ph_val
+  yield:
+    - resa
+    - produzione
+    - harvest
+    - yield_kg
+    - produzione_totale
+  rainfall:
+    - pioggia
+    - rainfall
+    - prec
+    - precipitazioni
+    - rain_mm
