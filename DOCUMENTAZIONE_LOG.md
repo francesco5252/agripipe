@@ -125,6 +125,28 @@ agripipe run --input-dir ./data/daily_exports/ --preset ulivo_ligure --output bu
 
 Questa aggiunta sposta AgriPipe da tool per singoli file a piccola data pipeline per batch di dati reali.
 
+### 1.8 Fuzzy matching dei nomi colonna
+
+Lo schema rigido è la base del contratto AgriPipe: se mancano colonne, errore. Ma in produzione un operatore agritech riceve Excel con nomi come `Temperatura_C`, `Temp °C`, `Umidità_%`, `pH_suolo` — varianti perfettamente comprensibili a un umano ma che il loader rigetterebbe.
+
+Ho aggiunto un layer opzionale di **fuzzy matching** basato su `rapidfuzz`:
+
+- Dizionario IT/EN di sinonimi agronomici in `configs/column_synonyms.yaml`.
+- Funzione `fuzzy_rename_columns(df, required, synonyms)` in `src/agripipe/matching.py` che usa `WRatio` per confrontare ogni colonna coi sinonimi e rinominare quelle che superano lo score threshold (default 85/100).
+- Integrazione in `load_raw(path, fuzzy=True)` come **opt-in** (default `False` per retrocompatibilità).
+- Flag CLI: `agripipe run --input file.xlsx --preset ulivo_ligure --fuzzy`.
+
+```python
+# Prima (rigetta):
+load_raw("excel_italiano.xlsx")  # ValueError: Colonne mancanti ['temp', 'humidity', 'yield']
+
+# Dopo (riconosce e rinomina):
+load_raw("excel_italiano.xlsx", fuzzy=True)
+# Temperatura → temp, Umidità → humidity, Resa → yield
+```
+
+**Scelta di design**: il rename è irreversibile e loggato — la tracciabilità è preservata via `df.attrs['file_hash']`, e il matching è explicit (si attiva solo con `fuzzy=True`). Niente magia nascosta.
+
 ### ✅ Verifica dello step 1
 
 Test unitari in `tests/test_loader.py`:
