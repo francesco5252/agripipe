@@ -14,16 +14,19 @@
 - **Cosa**: riconoscere automaticamente varianti come `Temperatura_C`, `Temp °C`, `temperature`, `t_celsius` come la colonna canonica `temp`, via string similarity + dizionario italiano-inglese agronomico.
 - **Perché per l'agritech**: chi riceve dati dai clienti non ha controllo sui nomi colonna. Forzare la rinomina manuale prima di ogni esecuzione è friction che in produzione uccide l'adozione.
 - **Sforzo**: M
+- **Issue**: [#5](https://github.com/francesco5252/agripipe/issues/5)
 
 ### Batch loading da cartella
 - **Cosa**: `agripipe run --input-dir ./daily_exports/` processa tutti gli Excel di una cartella producendo un bundle consolidato e un report di qualità aggregato.
 - **Perché per l'agritech**: gli operatori ricevono un Excel al giorno per azienda cliente. Chiamare la CLI una volta per file non è un workflow credibile in produzione — serve il batch.
 - **Sforzo**: S
+- **Issue**: [#6](https://github.com/francesco5252/agripipe/issues/6)
 
 ### Conversione automatica unità SI
 - **Cosa**: rilevare e convertire Fahrenheit → Celsius, inch → mm, lb/acre → kg/ha in base a suffissi nel nome colonna o a range numerici fuori norma.
 - **Perché per l'agritech**: dati da sensori americani o macchinari misti sono frequenti. Sbagliare un'unità è un bug silenzioso che scopri solo in fase di inferenza — il tipo di bug più costoso da rintracciare in un modello ML.
 - **Sforzo**: M
+- **Issue**: [#7](https://github.com/francesco5252/agripipe/issues/7)
 
 ---
 
