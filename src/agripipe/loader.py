@@ -1,17 +1,14 @@
 """Step 1 — Loader: carica Excel/CSV agronomici grezzi.
 
-Responsabilità minimali, una sola funzione pubblica: ``load_raw``.
+Responsabilità:
 
-* Supporta Excel (``.xlsx``, ``.xls``) e CSV con separatori comuni (``,``, ``;``, TAB).
-* Salta righe di "spazzatura" iniziali (intestazioni aziendali, note) e individua
-  automaticamente la riga con l'header.
-* Calcola un fingerprint SHA-256 del file (tracciabilità del dato).
-* Valida lo schema: se mancano colonne obbligatorie ⇒ ``ValueError``.
-* Normalizza la colonna ``date`` a ``datetime``.
-
-NIENTE fuzzy mapping, conversione unità (Fahrenheit/pollici), batch-loading da
-cartella o auto-iniezione del ``field_id`` dal nome file — funzionalità rimosse
-per mantenere la pipeline prevedibile e facilmente debuggabile.
+* Supporta Excel (``.xlsx``, ``.xls``) e CSV con separatori comuni (``.``, ``;``, TAB).
+* Salta righe di "spazzatura" iniziali via auto-detect dell'header row.
+* Calcola un fingerprint SHA-256 del file sorgente per la tracciabilità.
+* Supporta **fuzzy mapping** dei nomi colonna tramite sinonimi configurabili.
+* Supporta il **batch loading** da intere cartelle.
+* Valida lo schema minimo obbligatorio.
+* Normalizza la colonna ``date`` a ``datetime``, gestendo anche i seriali Excel.
 """
 
 from __future__ import annotations
