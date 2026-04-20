@@ -57,4 +57,5 @@ site/
 # Internal process artifacts (Claude/Gemini coordination, specs, plans)
 # Kept on local disk for agent workflows, excluded from public repo.
 HANDOFF_FOR_CLAUDE.md
+METODOLOGIA_DI_LAVORO.md
 docs/superpowers/
