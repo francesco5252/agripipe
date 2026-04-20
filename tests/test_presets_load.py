@@ -23,7 +23,6 @@ def test_presets_cover_at_least_ten_regions():
     assert len(regions) >= 10, f"Solo {len(regions)} regioni: {regions}"
 
 
-
 def test_crops_biological_rules_exist():
     data = yaml.safe_load(Path("configs/agri_knowledge.yaml").read_text(encoding="utf-8"))
     crops = data.get("crops", {})

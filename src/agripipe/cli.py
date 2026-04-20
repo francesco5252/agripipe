@@ -41,9 +41,7 @@ def run(
     export_ml: Path | None = typer.Option(
         None, "--export-ml", "-e", help="Esporta bundle ML completo (.zip) in questa cartella."
     ),
-    fuzzy: bool = typer.Option(
-        False, "--fuzzy", help="Abilita fuzzy matching dei nomi colonna."
-    ),
+    fuzzy: bool = typer.Option(False, "--fuzzy", help="Abilita fuzzy matching dei nomi colonna."),
     auto_units: bool = typer.Option(
         False, "--auto-units", help="Abilita conversione automatica unità SI (F, inch, lb/acre)."
     ),
