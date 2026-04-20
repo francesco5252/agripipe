@@ -81,3 +81,24 @@ def test_clean_with_preset_discovers_columns():
     assert out["temp"].max() <= 38.0
     assert "temp" in cleaner.config.numeric_columns
     assert "ph" in cleaner.config.numeric_columns
+
+
+def test_clean_with_auto_unit_conversion():
+    """Verifica che il Cleaner chiami correttamente detect_and_convert_units."""
+    import pytest
+
+    config = CleanerConfig(auto_unit_conversion=True, numeric_columns=["temp"])
+    cleaner = AgriCleaner(config)
+
+    # Input con colonna fahrenheit
+    df = pd.DataFrame(
+        {"temp_f": [32.0, 68.0], "field_id": ["A", "A"], "date": ["2025-01-01", "2025-01-02"]}
+    )
+    df_clean = cleaner.clean(df)
+
+    # temp_f deve essere sparito, temp deve esistere ed essere in Celsius
+    assert "temp" in df_clean.columns
+    assert "temp_f" not in df_clean.columns
+    assert df_clean["temp"].iloc[0] == pytest.approx(0.0)
+    assert df_clean["temp"].iloc[1] == pytest.approx(20.0, abs=0.1)
+    assert "temp_f" in cleaner.diagnostics.unit_conversions

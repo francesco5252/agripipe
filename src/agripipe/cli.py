@@ -44,6 +44,9 @@ def run(
     fuzzy: bool = typer.Option(
         False, "--fuzzy", help="Abilita fuzzy matching dei nomi colonna."
     ),
+    auto_units: bool = typer.Option(
+        False, "--auto-units", help="Abilita conversione automatica unità SI (F, inch, lb/acre)."
+    ),
 ) -> None:
     """Esegue l'intera pipeline: load -> clean -> tensorize -> save/export."""
     try:
@@ -63,6 +66,13 @@ def run(
         else:
             typer.secho("❌ Fornire --config o --preset.", fg=typer.colors.RED, err=True)
             raise typer.Exit(code=1)
+
+        # Applichiamo auto_units alla config del cleaner se richiesto via CLI
+        if auto_units:
+            cleaner.config.auto_unit_conversion = True
+            # Per sicurezza abilitiamo anche l'euristica se l'utente la vuole (via CLI usiamo solo quella base per ora)
+            # o lasciamo l'euristica spenta di default e attivabile solo via YAML per ridurre falsi positivi.
+            # In questo caso, abilitiamo solo quella basata sui suffissi.
 
         if input_dir:
             df_raw = batch_load_raw(input_dir, fuzzy=fuzzy)
