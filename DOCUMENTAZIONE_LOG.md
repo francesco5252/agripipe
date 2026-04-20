@@ -105,6 +105,26 @@ if missing:
     raise ValueError(f"Schema non valido: mancano le colonne {sorted(missing)}")
 ```
 
+### 1.7 Batch loading da cartella
+
+In produzione, un operatore agritech riceve spesso molti piccoli file (es. uno al giorno) invece di un unico dataset consolidato. Chiamare la CLI per ogni file è inefficiente.
+
+Ho aggiunto la funzionalità di **batch loading**:
+
+- Nuova funzione `batch_load_raw(input_dir)` in `src/agripipe/loader.py`.
+- Riconosce automaticamente file `.xlsx`, `.xls` e `.csv` nella cartella.
+- Concatena tutti i file validi in un unico DataFrame.
+- Aggiunge una colonna `source_file` per preservare la tracciabilità della riga.
+- Opzione `on_error="skip"` per ignorare file corrotti e continuare il caricamento.
+- Integrazione CLI via flag `--input-dir` (o `-d`) nel comando `agripipe run`.
+
+```bash
+# Esempio d'uso
+agripipe run --input-dir ./data/daily_exports/ --preset ulivo_ligure --output bundle.pt
+```
+
+Questa aggiunta sposta AgriPipe da tool per singoli file a piccola data pipeline per batch di dati reali.
+
 ### ✅ Verifica dello step 1
 
 Test unitari in `tests/test_loader.py`:

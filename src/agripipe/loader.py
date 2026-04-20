@@ -163,3 +163,62 @@ def _normalize_dates(df: pd.DataFrame) -> pd.DataFrame:
     df["date"] = df["date"].apply(_fix_excel_serial)
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     return df.dropna(subset=["date"]).reset_index(drop=True)
+
+
+from typing import Literal
+
+
+def batch_load_raw(
+    input_dir: str | Path,
+    sheet_name: str | int | None = 0,
+    schema: RawSchema | None = None,
+    on_error: Literal["raise", "skip"] = "raise",
+) -> pd.DataFrame:
+    """Carica tutti gli Excel/CSV di una cartella e li concatena.
+
+    Ogni riga del DataFrame risultante contiene una colonna ``source_file`` con
+    il nome del file di provenienza, utile per tracciare la provenienza in
+    analisi a valle.
+
+    Args:
+        input_dir: Percorso della cartella contenente i file da caricare.
+        sheet_name: Foglio Excel da leggere per ogni file (default: 0).
+        schema: Schema atteso. Se ``None`` usa ``RawSchema()``.
+        on_error: Se ``"raise"``, solleva eccezione al primo file malformato.
+            Se ``"skip"``, logga un warning e continua col file successivo.
+
+    Returns:
+        Un unico DataFrame consolidato.
+
+    Raises:
+        FileNotFoundError: Se ``input_dir`` non esiste.
+        ValueError: Se non viene trovato alcun file Excel/CSV o se ``on_error="raise"``
+            e un file è malformato.
+    """
+    input_dir = Path(input_dir)
+    if not input_dir.is_dir():
+        raise FileNotFoundError(f"Directory non trovata: {input_dir}")
+
+    extensions = {".xlsx", ".xls", ".csv"}
+    files = sorted(f for f in input_dir.iterdir() if f.suffix.lower() in extensions)
+
+    if not files:
+        raise ValueError(f"Nessun file Excel/CSV trovato in {input_dir}")
+
+    logger.info("Batch loading da: %s (%d file trovati)", input_dir.name, len(files))
+    all_dfs = []
+
+    for f in files:
+        try:
+            df = load_raw(f, sheet_name=sheet_name, schema=schema)
+            df["source_file"] = f.name
+            all_dfs.append(df)
+        except Exception as e:
+            if on_error == "raise":
+                raise ValueError(f"Errore fatale nel caricamento di {f.name}: {e}") from e
+            logger.warning("Salto file malformato %s: %s", f.name, e)
+
+    if not all_dfs:
+        raise ValueError(f"Nessun file è stato caricato con successo da {input_dir}")
+
+    return pd.concat(all_dfs, ignore_index=True)
