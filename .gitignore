@@ -53,3 +53,8 @@ site/
 .env
 .env.local
 *.log
+
+# Internal process artifacts (Claude/Gemini coordination, specs, plans)
+# Kept on local disk for agent workflows, excluded from public repo.
+HANDOFF_FOR_CLAUDE.md
+docs/superpowers/
