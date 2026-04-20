@@ -7,6 +7,7 @@ synonyms:
   date:
     - data
     - data_rilevazione
+    - data rilevazione
     - timestamp
     - giorno
     - date_recorded
@@ -14,6 +15,7 @@ synonyms:
     - campo
     - appezzamento
     - id_campo
+    - id appezzamento
     - lotto
     - field
     - plot_id
@@ -23,6 +25,8 @@ synonyms:
     - temp_c
     - t_aria
     - air_temp
+    - temp_aria_c
+    - temp_aria
   humidity:
     - umidità
     - umidita
@@ -30,17 +34,24 @@ synonyms:
     - rh
     - relative_humidity
     - umidità_relativa
+    - umidita_relativa
+    - umidita_relativa_%
   ph:
     - ph_suolo
     - soil_ph
     - acidità
     - ph_val
+    - ph_estratto
+    - ph_estratto_suolo
   yield:
     - resa
     - produzione
     - harvest
     - yield_kg
     - produzione_totale
+    - resa_stima_kg
+    - resa_stimata
+    - resa_stimata_kg_ha
   rainfall:
     - pioggia
     - rainfall

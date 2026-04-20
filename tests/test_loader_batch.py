@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from agripipe.loader import batch_load_raw, load_raw
+from agripipe.loader import batch_load_raw
 
 
 def _make_valid_xlsx(path: Path, n_rows: int = 5) -> None:

@@ -8,7 +8,7 @@ import yaml
 def test_all_presets_have_required_fields():
     data = yaml.safe_load(Path("configs/agri_knowledge.yaml").read_text(encoding="utf-8"))
     presets = data["regional_presets"]
-    assert len(presets) >= 12
+    assert len(presets) >= 13  # include il nuovo preset pomodoro_siciliano (#8)
     for key, p in presets.items():
         assert "region" in p, f"{key}: missing region"
         assert "crop" in p, f"{key}: missing crop"
@@ -21,6 +21,7 @@ def test_presets_cover_at_least_ten_regions():
     data = yaml.safe_load(Path("configs/agri_knowledge.yaml").read_text(encoding="utf-8"))
     regions = {p["region"] for p in data["regional_presets"].values()}
     assert len(regions) >= 10, f"Solo {len(regions)} regioni: {regions}"
+
 
 
 def test_crops_biological_rules_exist():

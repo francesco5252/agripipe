@@ -15,8 +15,10 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
+from typing import Literal
 
 import pandas as pd
+import yaml
 from pydantic import BaseModel, Field
 
 from agripipe.utils.logging_setup import get_logger
@@ -49,9 +51,6 @@ class RawSchema(BaseModel):
     required_columns: list[str] = Field(
         default_factory=lambda: ["date", "field_id", "temp", "humidity", "ph", "yield"]
     )
-
-
-import yaml
 
 
 def load_raw(
@@ -186,9 +185,6 @@ def _normalize_dates(df: pd.DataFrame) -> pd.DataFrame:
     df["date"] = df["date"].apply(_fix_excel_serial)
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     return df.dropna(subset=["date"]).reset_index(drop=True)
-
-
-from typing import Literal
 
 
 def batch_load_raw(

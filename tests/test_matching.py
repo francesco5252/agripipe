@@ -1,7 +1,6 @@
 """Test per il fuzzy matching dei nomi colonna."""
 
 import pandas as pd
-import pytest
 
 from agripipe.matching import fuzzy_rename_columns
 
