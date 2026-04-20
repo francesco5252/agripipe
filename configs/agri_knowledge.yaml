@@ -140,6 +140,23 @@ regional_presets:
     ideal_ph: [6.5, 7.5]
     note: "Olio IGP, cultivar Frantoio/Leccino/Moraiolo."
 
+  # --- SICILIA ---
+  pomodoro_siciliano:
+    region: "Sicilia"
+    crop: "tomato"
+    crop_display: "Pomodoro da Mensa Siciliano"
+    zona: "Sicilia (Ragusa / Siracusa)"
+    suolo_tessitura: "Argilloso / Vulcanico"
+    max_yield: 70.0
+    temp_range: [10, 42]
+    harvest_months: [6, 7, 8, 9]
+    ideal_ph: [6.0, 7.5]
+    salinity_tolerance: 3.0
+    note: >
+      Coltivazione in pieno campo e in serra (Ragusa, Siracusa). Alta
+      tolleranza al calore estivo; suoli profondi e ben drenati.
+      Varietà tipiche: Datterino, Cherry, Costoluto.
+
   # --- CAMPANIA ---
   pomodoro_sanmarzano:
     region: "Campania"

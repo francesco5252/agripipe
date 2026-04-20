@@ -10,7 +10,7 @@ import typer
 from agripipe.cleaner import AgriCleaner
 from agripipe.dataset import AgriDataset
 from agripipe.export import export_ml_bundle
-from agripipe.loader import load_raw
+from agripipe.loader import batch_load_raw, load_raw
 from agripipe.report import generate_report
 from agripipe.synth import SynthConfig, generate_dirty_excel
 from agripipe.utils.logging_setup import get_logger
@@ -21,7 +21,12 @@ logger = get_logger(__name__)
 
 @app.command()
 def run(
-    input: Path = typer.Option(..., "--input", "-i", exists=True, help="File .xlsx di input."),
+    input: Path | None = typer.Option(
+        None, "--input", "-i", exists=True, help="File .xlsx di input."
+    ),
+    input_dir: Path | None = typer.Option(
+        None, "--input-dir", "-d", exists=True, file_okay=False, help="Cartella con file Excel/CSV."
+    ),
     output: Path = typer.Option(..., "--output", "-o", help="Path .pt di output."),
     config: Path | None = typer.Option(
         None, "--config", "-c", help="YAML di configurazione (opzionale se si usa --preset)."
@@ -35,6 +40,12 @@ def run(
     ),
     export_ml: Path | None = typer.Option(
         None, "--export-ml", "-e", help="Esporta bundle ML completo (.zip) in questa cartella."
+    ),
+    fuzzy: bool = typer.Option(
+        False, "--fuzzy", help="Abilita fuzzy matching dei nomi colonna."
+    ),
+    auto_units: bool = typer.Option(
+        False, "--auto-units", help="Abilita conversione automatica unità SI (F, inch, lb/acre)."
     ),
 ) -> None:
     """Esegue l'intera pipeline: load -> clean -> tensorize -> save/export."""
@@ -53,10 +64,29 @@ def run(
                 raise typer.Exit(code=1)
             cleaner = AgriCleaner.from_yaml(config)
         else:
-            typer.secho("❌ Fornire --config o --preset.", fg=typer.colors.RED, err=True)
+            typer.secho(
+                "❌ Configurazione mancante: fornire --config <path> o --preset <nome>.",
+                fg=typer.colors.RED,
+                err=True,
+            )
             raise typer.Exit(code=1)
 
-        df_raw = load_raw(input)
+        # Applichiamo auto_units alla config del cleaner se richiesto via CLI
+        if auto_units:
+            cleaner.config.auto_unit_conversion = True
+
+        if input_dir:
+            df_raw = batch_load_raw(input_dir, fuzzy=fuzzy)
+        elif input:
+            df_raw = load_raw(input, fuzzy=fuzzy)
+        else:
+            typer.secho(
+                "❌ Input mancante: fornire --input <file> o --input-dir <cartella>.",
+                fg=typer.colors.RED,
+                err=True,
+            )
+            raise typer.Exit(code=1)
+
         df_clean = cleaner.clean(df_raw)
 
         if target not in df_clean.columns:

@@ -1,25 +1,24 @@
 """Step 1 — Loader: carica Excel/CSV agronomici grezzi.
 
-Responsabilità minimali, una sola funzione pubblica: ``load_raw``.
+Responsabilità:
 
-* Supporta Excel (``.xlsx``, ``.xls``) e CSV con separatori comuni (``,``, ``;``, TAB).
-* Salta righe di "spazzatura" iniziali (intestazioni aziendali, note) e individua
-  automaticamente la riga con l'header.
-* Calcola un fingerprint SHA-256 del file (tracciabilità del dato).
-* Valida lo schema: se mancano colonne obbligatorie ⇒ ``ValueError``.
-* Normalizza la colonna ``date`` a ``datetime``.
-
-NIENTE fuzzy mapping, conversione unità (Fahrenheit/pollici), batch-loading da
-cartella o auto-iniezione del ``field_id`` dal nome file — funzionalità rimosse
-per mantenere la pipeline prevedibile e facilmente debuggabile.
+* Supporta Excel (``.xlsx``, ``.xls``) e CSV con separatori comuni (``.``, ``;``, TAB).
+* Salta righe di "spazzatura" iniziali via auto-detect dell'header row.
+* Calcola un fingerprint SHA-256 del file sorgente per la tracciabilità.
+* Supporta **fuzzy mapping** dei nomi colonna tramite sinonimi configurabili.
+* Supporta il **batch loading** da intere cartelle.
+* Valida lo schema minimo obbligatorio.
+* Normalizza la colonna ``date`` a ``datetime``, gestendo anche i seriali Excel.
 """
 
 from __future__ import annotations
 
 import hashlib
 from pathlib import Path
+from typing import Literal
 
 import pandas as pd
+import yaml
 from pydantic import BaseModel, Field
 
 from agripipe.utils.logging_setup import get_logger
@@ -58,13 +57,16 @@ def load_raw(
     path: str | Path,
     sheet_name: str | int | None = 0,
     schema: RawSchema | None = None,
+    fuzzy: bool = False,
 ) -> pd.DataFrame:
     """Carica un file agronomico grezzo e restituisce un DataFrame validato.
 
     Args:
         path: Percorso al file ``.xlsx``, ``.xls`` o ``.csv``.
         sheet_name: Foglio Excel da leggere (default: primo foglio).
-        schema: Schema atteso. Se ``None`` usa ``RawSchema()`` di default.
+        schema: Schema atteso. Se ``None`` usa ``RawSchema()``.
+        fuzzy: Se ``True``, prova a riconoscere i nomi delle colonne tramite
+            fuzzy matching e sinonimi (es: "Temperatura" -> "temp").
 
     Returns:
         ``pandas.DataFrame`` con colonne validate. In ``df.attrs['file_hash']``
@@ -87,13 +89,33 @@ def load_raw(
     else:
         df = _load_excel_with_header_detection(path, sheet_name, schema.required_columns)
 
+    if fuzzy:
+        from agripipe.matching import fuzzy_rename_columns
+
+        syn_path = Path("configs/column_synonyms.yaml")
+        synonyms, threshold = {}, 85
+        if syn_path.exists():
+            with open(syn_path, encoding="utf-8") as f:
+                cfg = yaml.safe_load(f)
+                synonyms = cfg.get("synonyms", {})
+                threshold = cfg.get("threshold", 85)
+
+        df, report = fuzzy_rename_columns(
+            df, schema.required_columns, synonyms=synonyms, threshold=threshold
+        )
+        if report:
+            logger.info("Fuzzy mapping applicato: %s", report)
+
     # Normalizzazione nomi colonne: lower + strip spazi
     df.columns = [str(c).strip().lower() for c in df.columns]
 
     # Validazione schema — colonne obbligatorie presenti?
     missing = [c for c in schema.required_columns if c not in df.columns]
     if missing:
-        raise ValueError(f"Colonne mancanti nello schema: {missing}")
+        msg = f"Colonne mancanti nello schema: {missing}."
+        if not fuzzy:
+            msg += " Suggerimento: prova ad abilitare il fuzzy matching con --fuzzy."
+        raise ValueError(msg)
 
     df = _normalize_dates(df)
     df.attrs["file_hash"] = file_hash
@@ -163,3 +185,60 @@ def _normalize_dates(df: pd.DataFrame) -> pd.DataFrame:
     df["date"] = df["date"].apply(_fix_excel_serial)
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     return df.dropna(subset=["date"]).reset_index(drop=True)
+
+
+def batch_load_raw(
+    input_dir: str | Path,
+    sheet_name: str | int | None = 0,
+    schema: RawSchema | None = None,
+    on_error: Literal["raise", "skip"] = "raise",
+    fuzzy: bool = False,
+) -> pd.DataFrame:
+    """Carica tutti gli Excel/CSV di una cartella e li concatena.
+
+    Ogni riga del DataFrame risultante contiene una colonna ``source_file`` con
+    il nome del file di provenienza, utile per tracciare la provenienza in
+    analisi a valle.
+
+    Args:
+        input_dir: Percorso della cartella contenente i file da caricare.
+        sheet_name: Foglio Excel da leggere per ogni file (default: 0).
+        schema: Schema atteso. Se ``None`` usa ``RawSchema()``.
+        on_error: Se ``"raise"``, solleva eccezione al primo file malformato.
+            Se ``"skip"``, logga un warning e continua col file successivo.
+
+    Returns:
+        Un unico DataFrame consolidato.
+
+    Raises:
+        FileNotFoundError: Se ``input_dir`` non esiste.
+        ValueError: Se non viene trovato alcun file Excel/CSV o se ``on_error="raise"``
+            e un file è malformato.
+    """
+    input_dir = Path(input_dir)
+    if not input_dir.is_dir():
+        raise FileNotFoundError(f"Directory non trovata: {input_dir}")
+
+    extensions = {".xlsx", ".xls", ".csv"}
+    files = sorted(f for f in input_dir.iterdir() if f.suffix.lower() in extensions)
+
+    if not files:
+        raise ValueError(f"Nessun file Excel/CSV trovato in {input_dir}")
+
+    logger.info("Batch loading da: %s (%d file trovati)", input_dir.name, len(files))
+    all_dfs = []
+
+    for f in files:
+        try:
+            df = load_raw(f, sheet_name=sheet_name, schema=schema, fuzzy=fuzzy)
+            df["source_file"] = f.name
+            all_dfs.append(df)
+        except Exception as e:
+            if on_error == "raise":
+                raise ValueError(f"Errore fatale nel caricamento di {f.name}: {e}") from e
+            logger.warning("Salto file malformato %s: %s", f.name, e)
+
+    if not all_dfs:
+        raise ValueError(f"Nessun file è stato caricato con successo da {input_dir}")
+
+    return pd.concat(all_dfs, ignore_index=True)

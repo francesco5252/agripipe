@@ -49,6 +49,8 @@ class CleanerConfig:
     outlier_method: OutlierMethod = "iqr"
     outlier_iqr_multiplier: float = 1.5
     physical_bounds: dict[str, tuple[float, float]] = field(default_factory=dict)
+    auto_unit_conversion: bool = False
+    unit_range_heuristic: bool = False
     knowledge_path: str = "configs/agri_knowledge.yaml"
 
 
@@ -63,6 +65,7 @@ class CleanerDiagnostics:
     outliers_removed: int = 0
     out_of_bounds_removed: int = 0
     duplicates_removed: int = 0
+    unit_conversions: dict[str, dict[str, str]] = field(default_factory=dict)
 
 
 class AgriCleaner:
@@ -144,6 +147,9 @@ class AgriCleaner:
         self.diagnostics = CleanerDiagnostics(total_rows=len(df), current_preset_name=preset_name)
         df = df.copy()
 
+        # Step 0: Conversione unità (se abilitata)
+        df = self._convert_units(df)
+
         # Auto-detect colonne numeriche se non specificate
         if not self.config.numeric_columns:
             self.config.numeric_columns = df.select_dtypes(include=[np.number]).columns.tolist()
@@ -158,6 +164,19 @@ class AgriCleaner:
         return df
 
     # ---- private stages ----------------------------------------------------
+
+    def _convert_units(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Rileva e converte unità non-SI se abilitato in config."""
+        if not self.config.auto_unit_conversion:
+            return df
+
+        from agripipe.units import detect_and_convert_units
+
+        df, report = detect_and_convert_units(
+            df, use_range_heuristic=self.config.unit_range_heuristic
+        )
+        self.diagnostics.unit_conversions = report
+        return df
 
     def _coerce_types(self, df: pd.DataFrame) -> pd.DataFrame:
         """Date → ``datetime``; numerici "12,5"/"12.5" → ``float``."""

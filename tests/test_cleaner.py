@@ -81,3 +81,46 @@ def test_clean_with_preset_discovers_columns():
     assert out["temp"].max() <= 38.0
     assert "temp" in cleaner.config.numeric_columns
     assert "ph" in cleaner.config.numeric_columns
+
+
+def test_preset_pomodoro_siciliano():
+    """Issue #8 — Verifica che il preset pomodoro_siciliano si carichi e applichi correttamente."""
+    cleaner = AgriCleaner.from_preset("pomodoro_siciliano")
+
+    # Bounds fisici devono riflettere la letteratura agronomica
+    assert cleaner.config.physical_bounds["temp"] == (10.0, 42.0)
+    assert cleaner.config.physical_bounds["ph"] == (6.0, 7.5)
+    assert cleaner.diagnostics.current_preset_name == "pomodoro_siciliano"
+
+    # Applicazione: un valore fuori range deve diventare NaN e poi essere imputato
+    df = pd.DataFrame(
+        {
+            "temp": [25.0, 50.0, 28.0],  # 50.0 è fuori range [10, 42]
+            "ph": [6.5, 7.0, 8.0],       # 8.0 è fuori range [6.0, 7.5]
+        }
+    )
+    out = cleaner.clean(df)
+
+    assert out["temp"].max() <= 42.0, "temp fuori range non rimossa"
+    assert out["ph"].max() <= 7.5, "pH fuori range non rimossa"
+
+
+def test_clean_with_auto_unit_conversion():
+    """Verifica che il Cleaner chiami correttamente detect_and_convert_units."""
+    import pytest
+
+    config = CleanerConfig(auto_unit_conversion=True, numeric_columns=["temp"])
+    cleaner = AgriCleaner(config)
+
+    # Input con colonna fahrenheit
+    df = pd.DataFrame(
+        {"temp_f": [32.0, 68.0], "field_id": ["A", "A"], "date": ["2025-01-01", "2025-01-02"]}
+    )
+    df_clean = cleaner.clean(df)
+
+    # temp_f deve essere sparito, temp deve esistere ed essere in Celsius
+    assert "temp" in df_clean.columns
+    assert "temp_f" not in df_clean.columns
+    assert df_clean["temp"].iloc[0] == pytest.approx(0.0)
+    assert df_clean["temp"].iloc[1] == pytest.approx(20.0, abs=0.1)
+    assert "temp_f" in cleaner.diagnostics.unit_conversions

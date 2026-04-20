@@ -105,6 +105,48 @@ if missing:
     raise ValueError(f"Schema non valido: mancano le colonne {sorted(missing)}")
 ```
 
+### 1.7 Batch loading da cartella
+
+In produzione, un operatore agritech riceve spesso molti piccoli file (es. uno al giorno) invece di un unico dataset consolidato. Chiamare la CLI per ogni file è inefficiente.
+
+Ho aggiunto la funzionalità di **batch loading**:
+
+- Nuova funzione `batch_load_raw(input_dir)` in `src/agripipe/loader.py`.
+- Riconosce automaticamente file `.xlsx`, `.xls` e `.csv` nella cartella.
+- Concatena tutti i file validi in un unico DataFrame.
+- Aggiunge una colonna `source_file` per preservare la tracciabilità della riga.
+- Opzione `on_error="skip"` per ignorare file corrotti e continuare il caricamento.
+- Integrazione CLI via flag `--input-dir` (o `-d`) nel comando `agripipe run`.
+
+```bash
+# Esempio d'uso
+agripipe run --input-dir ./data/daily_exports/ --preset ulivo_ligure --output bundle.pt
+```
+
+Questa aggiunta sposta AgriPipe da tool per singoli file a piccola data pipeline per batch di dati reali.
+
+### 1.8 Fuzzy matching dei nomi colonna
+
+Lo schema rigido è la base del contratto AgriPipe: se mancano colonne, errore. Ma in produzione un operatore agritech riceve Excel con nomi come `Temperatura_C`, `Temp °C`, `Umidità_%`, `pH_suolo` — varianti perfettamente comprensibili a un umano ma che il loader rigetterebbe.
+
+Ho aggiunto un layer opzionale di **fuzzy matching** basato su `rapidfuzz`:
+
+- Dizionario IT/EN di sinonimi agronomici in `configs/column_synonyms.yaml`.
+- Funzione `fuzzy_rename_columns(df, required, synonyms)` in `src/agripipe/matching.py` che usa `WRatio` per confrontare ogni colonna coi sinonimi e rinominare quelle che superano lo score threshold (default 85/100).
+- Integrazione in `load_raw(path, fuzzy=True)` come **opt-in** (default `False` per retrocompatibilità).
+- Flag CLI: `agripipe run --input file.xlsx --preset ulivo_ligure --fuzzy`.
+
+```python
+# Prima (rigetta):
+load_raw("excel_italiano.xlsx")  # ValueError: Colonne mancanti ['temp', 'humidity', 'yield']
+
+# Dopo (riconosce e rinomina):
+load_raw("excel_italiano.xlsx", fuzzy=True)
+# Temperatura → temp, Umidità → humidity, Resa → yield
+```
+
+**Scelta di design**: il rename è irreversibile e loggato — la tracciabilità è preservata via `df.attrs['file_hash']`, e il matching è explicit (si attiva solo con `fuzzy=True`). Niente magia nascosta.
+
 ### ✅ Verifica dello step 1
 
 Test unitari in `tests/test_loader.py`:
