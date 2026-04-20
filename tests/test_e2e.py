@@ -162,4 +162,3 @@ def test_e2e_non_canonical_columns(tmp_path: Path):
         f"outlier={cleaner.diagnostics.outliers_removed}, "
         f"imputed={cleaner.diagnostics.values_imputed}"
     )
-

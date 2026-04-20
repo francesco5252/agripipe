@@ -96,7 +96,7 @@ def test_preset_pomodoro_siciliano():
     df = pd.DataFrame(
         {
             "temp": [25.0, 50.0, 28.0],  # 50.0 è fuori range [10, 42]
-            "ph": [6.5, 7.0, 8.0],       # 8.0 è fuori range [6.0, 7.5]
+            "ph": [6.5, 7.0, 8.0],  # 8.0 è fuori range [6.0, 7.5]
         }
     )
     out = cleaner.clean(df)

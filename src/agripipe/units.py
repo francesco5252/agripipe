@@ -99,8 +99,10 @@ def detect_and_convert_units(
     for col in list(df.columns):
         col_lower = str(col).strip().lower()
         for pattern, (from_unit, to_unit, canonical) in SUFFIX_RULES.items():
-            if col_lower == pattern or col_lower.endswith(f"_{pattern}") or col_lower.endswith(
-                pattern
+            if (
+                col_lower == pattern
+                or col_lower.endswith(f"_{pattern}")
+                or col_lower.endswith(pattern)
             ):
                 converter = CONVERSIONS[(from_unit, to_unit)]
                 df[canonical] = df[col].astype(float).apply(converter)
