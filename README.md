@@ -161,6 +161,14 @@ Queste esclusioni sono **intenzionali**: mantengono la pipeline prevedibile, deb
 
 ---
 
+## 🗺️ Roadmap & contributi
+
+Dove sta andando AgriPipe: [`ROADMAP.md`](ROADMAP.md) — visione a 3 orizzonti (0-3 mesi, 3-12 mesi, 12+ mesi).
+
+Vuoi contribuire? Le task pronte da prendere in mano sono le [good first issues](https://github.com/francesco5252/agripipe/labels/good-first-issue). Per il setup di sviluppo in locale vedi [`docs/contributing.md`](docs/contributing.md).
+
+---
+
 ## 📄 Licenza
 
 Distribuito sotto licenza **MIT**. Vedere il file [`LICENSE`](LICENSE) per i dettagli.
