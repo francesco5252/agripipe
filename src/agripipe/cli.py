@@ -64,22 +64,27 @@ def run(
                 raise typer.Exit(code=1)
             cleaner = AgriCleaner.from_yaml(config)
         else:
-            typer.secho("❌ Fornire --config o --preset.", fg=typer.colors.RED, err=True)
+            typer.secho(
+                "❌ Configurazione mancante: fornire --config <path> o --preset <nome>.",
+                fg=typer.colors.RED,
+                err=True,
+            )
             raise typer.Exit(code=1)
 
         # Applichiamo auto_units alla config del cleaner se richiesto via CLI
         if auto_units:
             cleaner.config.auto_unit_conversion = True
-            # Per sicurezza abilitiamo anche l'euristica se l'utente la vuole (via CLI usiamo solo quella base per ora)
-            # o lasciamo l'euristica spenta di default e attivabile solo via YAML per ridurre falsi positivi.
-            # In questo caso, abilitiamo solo quella basata sui suffissi.
 
         if input_dir:
             df_raw = batch_load_raw(input_dir, fuzzy=fuzzy)
         elif input:
             df_raw = load_raw(input, fuzzy=fuzzy)
         else:
-            typer.secho("❌ Fornire --input o --input-dir.", fg=typer.colors.RED, err=True)
+            typer.secho(
+                "❌ Input mancante: fornire --input <file> o --input-dir <cartella>.",
+                fg=typer.colors.RED,
+                err=True,
+            )
             raise typer.Exit(code=1)
 
         df_clean = cleaner.clean(df_raw)

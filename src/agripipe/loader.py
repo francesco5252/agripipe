@@ -113,7 +113,10 @@ def load_raw(
     # Validazione schema — colonne obbligatorie presenti?
     missing = [c for c in schema.required_columns if c not in df.columns]
     if missing:
-        raise ValueError(f"Colonne mancanti nello schema: {missing}")
+        msg = f"Colonne mancanti nello schema: {missing}."
+        if not fuzzy:
+            msg += " Suggerimento: prova ad abilitare il fuzzy matching con --fuzzy."
+        raise ValueError(msg)
 
     df = _normalize_dates(df)
     df.attrs["file_hash"] = file_hash
