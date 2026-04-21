@@ -1,187 +1,87 @@
-# 🌱 AgriPipe
+# 🌱 AgriPipe: Data-to-Tensor per l'Agricoltura di Precisione
 
-**Da Excel agronomico sporco a tensor PyTorch validati. Tre step, riproducibili, tracciabili.**
-
-> 🇬🇧 English version: [README.en.md](README.en.md)
+AgriPipe è una solida piattaforma **MLOps** ideata per traghettare i dati agronomici grezzi (provenienti da excel, droni, stazioni meteo o operatori in campo) allo stato di ecosistemi vettoriali blindati (`.pt` PyTorch tensors) per addestramenti previsionali in Deep Learning.
 
 ---
 
-## 🎯 Per chi è questo progetto
+## 1. Per chi è questo progetto
 
-AgriPipe nasce per colmare un vuoto concreto nel mondo dell'agricoltura digitale: la distanza fra i **dati raccolti in campo** (sensori, registri cartacei digitalizzati, fogli Excel compilati a mano) e il **formato rigido richiesto dai modelli di Machine Learning**.
-
-È pensato per tre profili di utente:
-
-- **👨‍🔬 Data scientist e ricercatori agritech** che ricevono Excel agronomici di qualità variabile e devono trasformarli in dataset ML-ready in modo riproducibile.
-- **🎓 Studenti di agronomia, scienze ambientali e agricoltura sostenibile** che vogliono portare un dataset reale a un modello PyTorch senza scrivere codice di pulizia da zero.
-- **🌾 Operatori agritech e sviluppatori di aziende del settore** che hanno bisogno di una pipeline prevedibile e auditabile per alimentare i propri modelli di previsione della resa.
-
-Non serve essere esperti di PyTorch per usarlo: la UI Streamlit copre tutto il flusso con pochi click.
+* **Data Scientist e AI Engineers nel panorama AgriTech**: che necessitano di iterare rapidamente e scalare su modelli pesanti senza perdersi nella giungla dei preprocessing "ad-hoc" ogni volta che arriva un nuovo Excel o cambiano i sensori.
+* **Agronomi Digitali & Centri di Ricerca**: a cui serve un'interfaccia usabile e garantita a garanzia della storicizzazione del test che validi automaticamente dati sporchi applicando regole di pulizia agronomica.
+* **Team Operations**: che mirano a standardizzare un bridge perfetto tra chi raccoglie in campo e chi sviluppa i layer inferenziali in Python.
 
 ---
 
-## 💡 Il problema che risolve
+## 2. Il problema che risolve
 
-Un Excel agronomico tipico è un campo minato:
+I dati agricoli raw sono caotici: l'umidità viene intesa come ratio (`0.2`) ed espressa l'anno dopo in percetuale (`20%`), il pH spesso presenta errori stratosferici di battitura (`pH 45.0` anziché `4.5`), e sono gremiti di _Not-a-Number (NaN)_.
 
-- Date in formato *seriale Excel* (`45123` invece di `2024-01-15`).
-- Umidità registrata come `150%` (impossibile fisicamente).
-- Tre o quattro righe di intestazione aziendale prima del vero header.
-- Righe duplicate per errori di sincronizzazione dei sensori.
-- Valori separatore decimale `,` invece di `.` (retaggio italiano).
-- NaN sparsi ovunque, a volte indicati con `-`, `n.d.`, o celle vuote.
-
-Fare Machine Learning su dati così richiede **ore di pulizia manuale** e introduce bug silenziosi difficili da rintracciare. AgriPipe automatizza tutto il processo in una pipeline trasparente a 3 step, generando un bundle `.zip` auto-documentato con tensor PyTorch, metadata JSON e parametri dello scaler pronti per la fase di training o inferenza.
+Gestire a mano e separatamente questi bug tra i laboratori ed il team Machine Learning rallenta lo scaling algoritmico o porta i modelli a overfittare rumore statistico.
+**AgriPipe risolve il collo di bottiglia del preprocessing manuale**: garantisce una pipeline type-safe e modulare che esegue data-cleaning massivo preservando l'integrità del senso agronomico e validando i file per creare split (train, val, test) sicuri e inalterabili tramite standardizzazione `scikit-learn` in tempo reale.
 
 ---
 
-## 🚀 Come si usa
+## 3. Come si usa
 
-AgriPipe offre due modalità d'uso, entrambe supportate:
-
-### 🖥 Via UI Streamlit (consigliato per esplorare)
+Il repository è concepito attorno a una User Interface solida tramite **Streamlit** (multipage architecture).
+Dalla cartella del progetto basta avviare:
 
 ```bash
 streamlit run app.py
 ```
 
-Si apre una web app a 3 step: carichi il file, configuri la pulizia, scarichi il bundle `.zip`. Zero righe di codice.
+Il browser ti accompagnerà in tre pagine, disposte in step rigidi per impedire misconfigurazioni:
+1. `1_📥_Ingestion`: fai upload del tuo CSV / Excel `(xls/xlsx)`. Esplora l'anteprima visiva raw e verifica the l'hash di ingresso del file.
+2. `2_🧹_Refinery`: esegui i wizard dinamici scegliendo criteri di outlier detection (IQR, Z-Score o None), imputazione per missing values e limiti fisici di tolleranza customizzati per impedire al Deep Learning di interpretare assurdi numerici biologici.
+3. `3_📦_Tensorizer`: qui affetti il dataset nei canonici set (Training, Validation e Testing), decidi lo Scaler desiderato (`Standard` / `Robust`) e gli applichi i Tensorizer categorical/numeric. Infine l'interfaccia estrarrà e ti farà scaricare un file `.zip` auto-contenuto.
 
-![AgriPipe UI — 3 step](docs/screenshots/agripipe_ui.png)
+---
 
-### ⚙️ Via CLI (consigliato per pipeline automatiche)
+## 4. Cosa produce
+
+Alla fine del ciclo di processamento, generi il **Machine Learning Bundle**.
+È uno `.zip` esatto che tu potrai spedire allo sviluppo modello con i seguenti output:
+* **Tensor Multipli** (`_train.pt`, `_val.pt`, `_test.pt`): Oggetti serializzati Pytorch composti dai vettori di `features`, la label del `target`, e persino `scaler_mean / scaler_scale`. Tutto calcolato live assecondando zero Data Leakage (i test vengono calcolati sugli estimatori del train!).
+* **Manifest `metadata.json`**: Uno spaccato indelebile dell'algoritmo che hai lanciato. Mostra in chiaro i dropout, le feature selezionate, i preset algoritmici applicati originariamente.
+* **Logging Tracciato su MLflow (Dietro le quinte)**: Agripipe valuta tacitamente l'integrità matematica del pacchetto finale calcolando un safety benchmark (Ridge Regression baseline) e tracciando i record tramite runtime MLOps a latere se `mlflow` è attivo.
+
+---
+
+## 5. Come funzionano i 3 Motori (Loader, Cleaner, Tensorizer)
+
+Dietro l'interfaccia amichevole, Agripipe implementa architettura enterprise rigorosamente controllata da Pydantic:
+
+* **Engine I: Loader (`src/agripipe/loader.py`)**
+  Il demone dell'ingestione. Sfrutta il fuzzy matching e una profonda intelligenza lessicale per riconoscere sinonimi (Es: se il file legge `data_raccolta`, il Loader coercisce internamente la colonna in `date`). Gestisce cache hashing.
+
+* **Engine II: Cleaner (`src/agripipe/cleaner.py` / `transformers.py`)**
+  È il colosso statistico disassemblato in una pipeline scikit-learn. Sotto al cofano ci sono **11 moduli seriali disaccoppiati** ("Transformers"), in ordine formale: conversione coercizione Date, Auto-Unit conversion, imputazione categorica in base ai sorting di time series per crop, bound checker `pydantic` su scale fisiche del pH/Temp/Hum. Ritorna il Dataframe sanificato e pronto. Inietta il calcolo dinamico dei Gradi Giorno Accumulati (GDD) se impostata la base biologica.
+
+* **Engine III: Tensorizer (`src/agripipe/tensorizer.py` & `export.py`)**
+  La cerniera tra Pandas Analytics e PyTorch AI. Abbatte e rimpiazza la pipeline string/integer categorica in matrici normalizzate. Scalifica tutto incapsulando il modello di `StandardScaler` o `RobustScaler`. L'istanza generata è un modulo incapsulato e sicuro esportabile.
+
+---
+
+## 6. Istruzioni per l'installazione
+
+Agripipe abbraccia `pyproject.toml` per l'installazione nativa delle dipendenze. Usa Python 3.11+.
 
 ```bash
-# Pulizia + tensorizzazione con preset regionale
-agripipe run --input dati.xlsx --preset ulivo_pugliese --output model_input.pt
-
-# Export bundle ML completo (.pt + .json + .zip)
-agripipe run -i dati.xlsx -p vite_piemontese -e ./export/
-
-# Generazione di dati sintetici per test
-agripipe generate --rows 1000 --output data/synthetic.xlsx
-```
-
-Esegui `agripipe --help` per la lista completa dei comandi.
-
----
-
-## 📦 Cosa produce
-
-Alla fine della pipeline ottieni un archivio **`<nome>.zip`** che contiene:
-
-| File | Contenuto |
-|------|-----------|
-| `<nome>.pt` *(o `<nome>_train.pt`, `_val.pt`, `_test.pt` se attivi lo split)* | Bundle PyTorch con `features`, `target`, `feature_names`, `scaler_mean`, `scaler_scale`, `metadata` |
-| `<nome>.json` | Manifest completo: schema, unità, statistiche per colonna, correlazioni, diagnostica pulizia, esempio PyTorch |
-
-Il tutto è tracciabile: il `metadata.json` include l'hash SHA-256 del file sorgente e uno `schema_lock_hash` che ti permette di verificare quando un dataset cambia forma.
-
-### Caricamento in PyTorch (5 righe)
-
-```python
-import torch
-from torch.utils.data import TensorDataset, DataLoader
-
-bundle = torch.load("agripipe_export.pt", weights_only=False)
-dataset = TensorDataset(bundle["features"], bundle["target"])
-loader = DataLoader(dataset, batch_size=32, shuffle=True)
-```
-
-Il modello PyTorch è pronto per l'addestramento senza ulteriori trasformazioni.
-
----
-
-## 🇮🇹 Atlante Agronomico Italiano Integrato
-
-AgriPipe non è più solo un tool statistico: ora include una base di conoscenza agronomica che copre l'intero territorio nazionale. Grazie all'**Atlante Agronomico Integrato**, il sistema è in grado di validare i dati non solo numericamente, ma biologicamente.
-
-L'Atlante comprende oltre **50 preset regionali** iper-localizzati, tra cui:
-- **Nord:** Riso Vercellese/Novarese (suoli acidi vs argillosi), Nebbiolo delle Langhe vs Valtellina, Mele del Trentino, Radicchio di Treviso (coltura invernale).
-- **Centro:** Sangiovese del Chianti e Brunello (suoli Galestro/Alberese), Zafferano dell'Aquila (alta quota), Kiwi di Latina, Tabacco Kentucky.
-- **Sud e Isole:** Pomodoro San Marzano DOP, Olivo Coratina pugliese, Bergamotto reggino, Vite dell'Etna (suoli vulcanici acidi), Vermentino di Gallura (granito).
-
-Ogni preset applica automaticamente:
-- **Validazione Temporale:** Azzeramento rese fuori dalle finestre di raccolta reali.
-- **Identità del Suolo:** Check di coerenza su pH e tessitura (es. sassi, argille, tufi).
-- **Soglie di Magnitudo:** Limiti di resa calibrati sui disciplinari DOCG/IGP reali.
-
----
-
-## 🏗 Come funziona: i 4 motori
-
-```
-┌─────────────┐   ┌─────────────┐   ┌──────────────┐   ┌────────────────┐
-│ Excel / CSV │──▶│  1. LOADER  │──▶│  2. CLEANER  │──▶│ 3. TENSORIZER  │──▶ .pt + .json + .zip
-└─────────────┘   └─────────────┘   └──────────────┘   └────────────────┘
-                    Fuzzy Match       Validazione        Scaling
-                    Batch Load        Agronomica         Encoding cat.
-                    Unit Conv.        Imputazione        Train/Val/Test
-```
-
-1. **Loader** — Legge Excel o CSV, gestisce il **batch loading** da intere cartelle, applica il **fuzzy matching** per riconoscere colonne scritte male o in italiano, e converte automaticamente le unità (es. Fahrenheit → Celsius).
-
-2. **Cleaner** — Il "cuore agronomico". Oltre alla pulizia statistica (IQR/Z-score), applica le regole dell'Atlante Italiano per eliminare dati biologicamente impossibili.
-
-3. **Tensorizer** — Scala le feature e codifica le variabili categoriche, generando tensor pronti per PyTorch.
-
----
-
-## 🛠 Installazione
-
-```bash
-# Clona il repository
+# 1. Clona il codice
 git clone https://github.com/francesco5252/agripipe.git
 cd agripipe
 
-# Installa in modalità sviluppo (include dipendenze di test)
-pip install -e ".[dev]"
+# 2. Imposta un ambiente pulito
+python -m venv venv
+
+# Su macOS/Linux:    source venv/bin/activate
+# Su Windows:        venv\Scripts\activate
+
+# 3. Installa the repository in editable mode (include tutte le app deps)
+pip install -e "."
+
+# 4. Compila (opzionale se sei uno sviluppatore backend della piattforma, in quel caso lancia `pip install -e ".[dev]"`)
+
+# 5. Avvia il terminale Data-to-Tensor
+streamlit run app.py
 ```
-
-Requisiti: **Python 3.10+**, sistema operativo qualsiasi (testato su Windows, Linux, macOS).
-
----
-
-## 🧪 Sviluppo e test
-
-Il progetto segue una disciplina TDD con test rigorosi:
-
-```bash
-pytest                        # 38 test, ~82% coverage
-ruff check src tests app.py    # linting
-black --check src tests app.py # formattazione
-```
-
-La CI GitHub Actions esegue automaticamente test + lint su Python 3.10, 3.11 e 3.12 a ogni push.
-
----
-
-## ⚠️ Limiti noti (onestà intellettuale)
-
-Conoscere i limiti di uno strumento è parte della sua qualità. AgriPipe **non fa**:
-
-- **Fuzzy matching dei nomi colonna** — lo schema minimo (`date`, `field_id`, `temp`, `humidity`, `ph`, `yield`) è obbligatorio. Se nel tuo Excel la colonna si chiama `Temperatura_C`, devi rinominarla prima.
-- **Conversione di unità di misura** — niente Fahrenheit → Celsius, niente pollici → mm. I dati si assumono già nelle unità canoniche (SI dove possibile).
-- **Batch loading da cartelle** — un file alla volta. La combinazione di più file è una scelta di workflow esterno.
-- **Modelli agronomici interpretativi** — nessun indice di sostenibilità, nessuna scorecard "green/yellow/red". AgriPipe produce dati puliti, non giudizi agronomici. Questa era una scelta di design: separare la preparazione del dato dall'interpretazione.
-- **Imputazione ML-based (KNN, MICE)** — resta su metodi statistici classici per trasparenza e riproducibilità.
-
-Queste esclusioni sono **intenzionali**: mantengono la pipeline prevedibile, debuggabile e facile da validare scientificamente.
-
----
-
-## 🗺️ Roadmap & contributi
-
-Dove sta andando AgriPipe: [`ROADMAP.md`](ROADMAP.md) — visione a 3 orizzonti (0-3 mesi, 3-12 mesi, 12+ mesi).
-
-Vuoi contribuire? Le task pronte da prendere in mano sono le [good first issues](https://github.com/francesco5252/agripipe/labels/good-first-issue). Per il setup di sviluppo in locale vedi [`docs/contributing.md`](docs/contributing.md).
-
----
-
-## 📄 Licenza
-
-Distribuito sotto licenza **MIT**. Vedere il file [`LICENSE`](LICENSE) per i dettagli.
-
----
-
-<sub>Progetto sviluppato con un approccio ML-Ops rigoroso. Per il percorso di sviluppo completo passo-passo, consulta [`DOCUMENTAZIONE_LOG.md`](DOCUMENTAZIONE_LOG.md).</sub>
