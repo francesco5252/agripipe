@@ -14,7 +14,7 @@ AgriPipe nasce per colmare un vuoto concreto nel mondo dell'agricoltura digitale
 
 - **👨‍🔬 Data scientist e ricercatori agritech** che ricevono Excel agronomici di qualità variabile e devono trasformarli in dataset ML-ready in modo riproducibile.
 - **🎓 Studenti di agronomia, scienze ambientali e agricoltura sostenibile** che vogliono portare un dataset reale a un modello PyTorch senza scrivere codice di pulizia da zero.
-- **🌾 Operatori agritech e sviluppatori di aziende del settore** (come X Farm) che hanno bisogno di una pipeline prevedibile e auditabile per alimentare i propri modelli di previsione della resa.
+- **🌾 Operatori agritech e sviluppatori di aziende del settore** che hanno bisogno di una pipeline prevedibile e auditabile per alimentare i propri modelli di previsione della resa.
 
 Non serve essere esperti di PyTorch per usarlo: la UI Streamlit copre tutto il flusso con pochi click.
 
