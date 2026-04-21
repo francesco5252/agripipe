@@ -188,8 +188,10 @@ def list_presets(
             typer.secho("❌ Nessun preset trovato nell'Atlante.", fg=typer.colors.RED)
             return
 
-        typer.secho("\n🇮🇹  ATLANTE AGRONOMICO ITALIANO - AgriPipe\n", fg=typer.colors.GREEN, bold=True)
-        
+        typer.secho(
+            "\n🇮🇹  ATLANTE AGRONOMICO ITALIANO - AgriPipe\n", fg=typer.colors.GREEN, bold=True
+        )
+
         # Raggruppiamo per regione
         by_region = {}
         for name, data in presets.items():
@@ -198,7 +200,9 @@ def list_presets(
                 continue
             if reg not in by_region:
                 by_region[reg] = []
-            by_region[reg].append((name, data.get("crop_display", "N/A"), data.get("zona", "Generica")))
+            by_region[reg].append(
+                (name, data.get("crop_display", "N/A"), data.get("zona", "Generica"))
+            )
 
         for reg in sorted(by_region.keys()):
             typer.secho(f"📍 {reg.upper()}", fg=typer.colors.CYAN, bold=True)

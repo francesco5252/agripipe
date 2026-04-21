@@ -96,7 +96,7 @@ def test_preset_pomodoro_pachino():
     df = pd.DataFrame(
         {
             "temp": [25.0, 50.0, 28.0],  # 50.0 è fuori range [10, 45]
-            "ph": [6.5, 7.0, 9.0],       # 9.0 è fuori range [6.5, 8.0]
+            "ph": [6.5, 7.0, 9.0],  # 9.0 è fuori range [6.5, 8.0]
         }
     )
     out = cleaner.clean(df)
@@ -108,21 +108,23 @@ def test_preset_pomodoro_pachino():
 def test_agronomic_rules_ulivo_coratina():
     """Verifica che max_yield sia caricato e applicato."""
     cleaner = AgriCleaner.from_preset("ulivo_coratina_bari")
-    
+
     # Verifica caricamento config (Coratina ha max_yield=10.0)
     assert cleaner.config.max_yield == 10.0
-    
+
     # Input con valori fuori dai limiti agronomici
-    df = pd.DataFrame({
-        "yield": [8.0, 50.0, 9.0],       # 50.0 è assurdo (max 10)
-        "temp": [25.0, 26.0, 27.0],
-        "ph": [7.5, 7.6, 7.7],
-        "field_id": ["A", "A", "A"],
-        "date": ["2025-11-01", "2025-11-02", "2025-11-03"]
-    })
-    
+    df = pd.DataFrame(
+        {
+            "yield": [8.0, 50.0, 9.0],  # 50.0 è assurdo (max 10)
+            "temp": [25.0, 26.0, 27.0],
+            "ph": [7.5, 7.6, 7.7],
+            "field_id": ["A", "A", "A"],
+            "date": ["2025-11-01", "2025-11-02", "2025-11-03"],
+        }
+    )
+
     out = cleaner.clean(df)
-    
+
     # Il valore fuori limite (50.0) deve essere stato rimosso e imputato
     assert out["yield"].max() <= 10.0
     assert cleaner.diagnostics.agronomic_outliers_removed >= 1

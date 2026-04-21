@@ -59,7 +59,7 @@ def generate_dirty_excel(
 
 
 def _base_dataset(cfg: SynthConfig, rng: np.random.Generator) -> pd.DataFrame:
-    fields = [f"F{i+1}" for i in range(cfg.n_fields)]
+    fields = [f"F{i + 1}" for i in range(cfg.n_fields)]
     crops = ["wheat", "corn", "soy", "barley"]
     dates = pd.date_range(cfg.start_date, periods=cfg.n_rows // cfg.n_fields + 1, freq="D")
 

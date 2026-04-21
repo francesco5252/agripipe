@@ -1,10 +1,10 @@
-
 import pandas as pd
 from agripipe.cleaner import AgriCleaner
 
+
 def test_giro_italia_validation():
     """Stress test finale: coerenza agronomica Nord, Centro, Sud."""
-    
+
     # Dataset con anomalie contestuali
     data = {
         "date": [
@@ -14,8 +14,8 @@ def test_giro_italia_validation():
         ],
         "yield": [10.0, 8.0, 50.0],
         "ph": [7.0, 5.0, 7.2],
-        "salinity": [0.5, 0.5, 4.5], # 4.5 è altissimo per quasi tutti, tranne Pachino
-        "field_id": ["NORD", "CENTRO", "SUD"]
+        "salinity": [0.5, 0.5, 4.5],  # 4.5 è altissimo per quasi tutti, tranne Pachino
+        "field_id": ["NORD", "CENTRO", "SUD"],
     }
     df = pd.DataFrame(data)
 
@@ -47,5 +47,5 @@ def test_giro_italia_validation():
     assert val_sal == 4.5
     # Mentre se usassimo il preset Franciacorta, verrebbe filtrato se avessimo messo un limite basso
     # (Il preset Franciacorta non ha salinity_tolerance definito, quindi usa default)
-    
+
     print("\n🇮🇹 Giro d'Italia completato con successo!")

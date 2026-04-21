@@ -1,37 +1,37 @@
-
 import pandas as pd
 from agripipe.cleaner import AgriCleaner
 
+
 def test_stress_piemonte_anomalies():
     """Test 'cattivissimo' sulle colture piemontesi con dati impossibili."""
-    
+
     # Creazione dataset sabotato
     data = {
         "date": [
-            "2025-01-15", # 1. Nebbiolo a Gennaio (IMPOSSIBILE)
-            "2025-08-20", # 2. Nocciola con resa 20 t/ha (IMPOSSIBILE)
-            "2025-09-10", # 3. Riso Novarese con pH 9.0 (IMPOSSIBILE)
-            "2025-07-05", # 4. Mais a 55 gradi (FUORI RANGE)
+            "2025-01-15",  # 1. Nebbiolo a Gennaio (IMPOSSIBILE)
+            "2025-08-20",  # 2. Nocciola con resa 20 t/ha (IMPOSSIBILE)
+            "2025-09-10",  # 3. Riso Novarese con pH 9.0 (IMPOSSIBILE)
+            "2025-07-05",  # 4. Mais a 55 gradi (FUORI RANGE)
         ],
         "yield": [
-            5.0,   # Nebbiolo fuori stagione
+            5.0,  # Nebbiolo fuori stagione
             20.0,  # Nocciola sovrumana
-            7.0,   # Riso ok
-            15.0   # Mais ok
+            7.0,  # Riso ok
+            15.0,  # Mais ok
         ],
         "ph": [
-            7.5,   # Barolo ok
-            7.0,   # Nocciola ok
-            9.0,   # Riso Novarese (Dovrebbe essere acido!)
-            6.5    # Mais ok
+            7.5,  # Barolo ok
+            7.0,  # Nocciola ok
+            9.0,  # Riso Novarese (Dovrebbe essere acido!)
+            6.5,  # Mais ok
         ],
         "temp": [
-            5.0,   # Gennaio ok
+            5.0,  # Gennaio ok
             25.0,  # Agosto ok
             20.0,  # Settembre ok
-            55.0   # Luglio (Troppo caldo!)
+            55.0,  # Luglio (Troppo caldo!)
         ],
-        "field_id": ["F1", "F2", "F3", "F4"]
+        "field_id": ["F1", "F2", "F3", "F4"],
     }
     df_dirty = pd.DataFrame(data)
 
@@ -44,7 +44,7 @@ def test_stress_piemonte_anomalies():
     # La resa del Barolo a Gennaio (riga 0) deve essere stata azzerata (NaN) e poi imputata (mediana)
     # Ma dato che è l'unica riga di resa rilevante, guardiamo se il diagnostico l'ha presa
     assert cleaner_barolo.diagnostics.agronomic_outliers_removed >= 1
-    
+
     # --- TEST 2: NOCCIOLA (Filtro Magnitudo) ---
     cleaner_nocciola = AgriCleaner.from_preset("nocciola_piemonte_alta_langa")
     out_nocciola = cleaner_nocciola.clean(df_dirty)

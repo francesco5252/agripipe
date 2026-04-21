@@ -38,7 +38,7 @@ st.set_page_config(
 
 st.title("🌱 AgriPipe")
 st.caption(
-    "Excel agronomico grezzo → DataFrame pulito → tensor PyTorch. " "Pipeline ML-Ops in 3 step."
+    "Excel agronomico grezzo → DataFrame pulito → tensor PyTorch. Pipeline ML-Ops in 3 step."
 )
 
 # Stato condiviso fra gli step (Streamlit ricarica tutto lo script a ogni interazione)
