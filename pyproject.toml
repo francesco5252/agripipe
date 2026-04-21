@@ -43,6 +43,8 @@ dev = [
     "mkdocs>=1.5",
     "mkdocs-material>=9.4",
     "mkdocstrings[python]>=0.23",
+    "mypy>=1.8",
+    "types-PyYAML>=6.0.12",
 ]
 
 [project.scripts]
@@ -62,3 +64,7 @@ target-version = ["py310"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --cov=agripipe --cov-report=term-missing"
+
+[tool.mypy]
+ignore_missing_imports = true
+strict = false

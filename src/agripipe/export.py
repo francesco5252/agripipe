@@ -19,6 +19,9 @@ from agripipe.dataset import AgriDataset
 from agripipe.metadata import build_metadata, save_metadata_json
 
 
+from typing import Literal
+
+
 def export_ml_bundle(
     df_clean: pd.DataFrame,
     cleaner: AgriCleaner,
@@ -27,8 +30,8 @@ def export_ml_bundle(
     name: str = "agripipe_export",
     target: str | None = "yield",
     split_ratios: tuple[float, float, float] | None = None,
-    scaling_strategy: str = "standard",
-    categorical_strategy: str = "label",
+    scaling_strategy: Literal["standard", "robust"] = "standard",
+    categorical_strategy: Literal["label", "onehot"] = "label",
 ) -> dict[str, Path]:
     """Esporta tensor + metadata + zip in ``output_dir``.
 

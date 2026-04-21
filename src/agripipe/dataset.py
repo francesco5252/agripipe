@@ -6,6 +6,7 @@ e fornisce ``__getitem__`` standard, compatibile con ``DataLoader``.
 
 from __future__ import annotations
 
+from typing import Literal
 import pandas as pd
 import torch
 from torch.utils.data import Dataset
@@ -22,8 +23,8 @@ class AgriDataset(Dataset):
         numeric_columns: list[str],
         categorical_columns: list[str] | None = None,
         target: str | None = None,
-        categorical_strategy: str = "label",
-        scaling_strategy: str = "standard",
+        categorical_strategy: Literal["label", "onehot"] = "label",
+        scaling_strategy: Literal["standard", "robust"] = "standard",
         split_ratios: tuple[float, float, float] | None = None,
     ):
         self.tensorizer = Tensorizer(

@@ -193,7 +193,7 @@ def list_presets(
         )
 
         # Raggruppiamo per regione
-        by_region = {}
+        by_region: dict[str, list[tuple[str, str, str]]] = {}
         for name, data in presets.items():
             reg = data.get("region", "Altro")
             if region and region.lower() not in reg.lower():

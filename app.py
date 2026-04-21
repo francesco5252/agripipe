@@ -141,13 +141,19 @@ else:
         categorical_cols = [c for c in ["field_id", "crop_type"] if c in df_raw.columns]
         date_cols = [c for c in ["date"] if c in df_raw.columns]
 
+        from typing import cast, Literal
+        from agripipe.cleaner import ImputationStrategy, OutlierMethod
+
+        missing_strat_cast = cast(ImputationStrategy, missing_strategy)
+        outlier_strat_cast = cast(OutlierMethod, outlier_method)
+
         config = CleanerConfig(
             numeric_columns=numeric_cols,
             categorical_columns=categorical_cols,
             date_columns=date_cols,
             dedup_keys=[c for c in ["field_id", "date"] if c in df_raw.columns],
-            missing_strategy=missing_strategy,
-            outlier_method=outlier_method,
+            missing_strategy=missing_strat_cast,
+            outlier_method=outlier_strat_cast,
             physical_bounds={
                 "ph": (ph_lo, ph_hi),
                 "humidity": (hum_lo, hum_hi),
@@ -216,7 +222,9 @@ else:
     target = None if target_choice == "(nessuno)" else target_choice
 
     scaling_strategy = c_scale.selectbox("Scaler", options=["standard", "robust"])
+    scaling_strat_cast = cast(Literal["standard", "robust"], scaling_strategy)
     categorical_strategy = c_cat.selectbox("Encoding categoriche", options=["label", "onehot"])
+    categorical_strat_cast = cast(Literal["label", "onehot"], categorical_strategy)
 
     st.markdown("**Split train / val / test** — la somma deve fare 100%.")
     c_tr, c_va, c_te = st.columns(3)
@@ -252,11 +260,11 @@ else:
                             name=name,
                             target=target,
                             split_ratios=split_ratios,
-                            scaling_strategy=scaling_strategy,
-                            categorical_strategy=categorical_strategy,
+                            scaling_strategy=scaling_strat_cast,
+                            categorical_strategy=categorical_strat_cast,
                         )
-                    zip_bytes = paths["zip"].read_bytes()
-                    json_text = paths["json"].read_text(encoding="utf-8")
+                    zip_bytes: bytes | None = paths["zip"].read_bytes()
+                    json_text: str | None = paths["json"].read_text(encoding="utf-8")
                 except ValueError as e:
                     st.error(f"Errore nella tensorizzazione: {e}")
                     zip_bytes = None
@@ -272,6 +280,7 @@ else:
                 )
                 with st.expander("Anteprima metadata.json"):
                     try:
-                        st.json(json.loads(json_text))
+                        if json_text is not None:
+                            st.json(json.loads(json_text))
                     except json.JSONDecodeError:
                         st.code(json_text)
