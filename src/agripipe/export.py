@@ -13,6 +13,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import torch
+from sklearn.linear_model import Ridge
+from sklearn.metrics import mean_squared_error
 
 from agripipe.cleaner import AgriCleaner
 from agripipe.dataset import AgriDataset
@@ -109,6 +111,25 @@ def export_ml_bundle(
         paths["json"] = json_path
 
     paths["zip"] = zip_path
+
+    # Integrazione MLOps (Step 9 e 10)
+    baseline_metrics = _compute_baseline(ds)
+    try:
+        from agripipe.tracking import log_export_run
+
+        log_export_run(
+            config_dict=cleaner.config.model_dump(),
+            diag_dict=asdict(cleaner.diagnostics),
+            file_name=name,
+            target=target,
+            split_ratios=split_ratios,
+            baseline_metrics=baseline_metrics,
+        )
+    except Exception as e:
+        import logging
+
+        logging.getLogger(__name__).warning("MLflow tracking fallito o non configurato: %s", e)
+
     return paths
 
 
@@ -146,3 +167,27 @@ def _extract_scaler_arrays(ds: AgriDataset) -> tuple[list[float], list[float]]:
         mean = []
     scale = np.asarray(scaler.scale_, dtype=float).tolist() if hasattr(scaler, "scale_") else []
     return mean, scale
+
+
+def _compute_baseline(ds: AgriDataset) -> dict[str, float]:
+    """Allena un modello dummy per validare la non assurdità del dataset (Step 10)."""
+    X = ds.features.numpy()
+    if ds.target is None:
+        return {}
+    y = ds.target.numpy()
+
+    if ds.train_indices is not None and ds.val_indices is not None:
+        X_train, y_train = X[ds.train_indices], y[ds.train_indices]
+        X_val, y_val = X[ds.val_indices], y[ds.val_indices]
+    else:
+        X_train, y_train = X, y
+        X_val, y_val = X, y
+
+    if len(X_train) < 5:
+        return {}
+
+    model = Ridge()
+    model.fit(X_train, y_train)
+    preds = model.predict(X_val)
+    mse = float(mean_squared_error(y_val, preds))
+    return {"baseline_mse": mse}
