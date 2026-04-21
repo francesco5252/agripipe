@@ -2,7 +2,7 @@
 
 > AgriPipe nasce come ponte affidabile fra Excel agronomico reale e tensor PyTorch validati. La direzione nei prossimi mesi è ridurre l'attrito all'adozione in contesti agritech di produzione: meno lavoro manuale richiesto, più controlli automatici, più formati supportati.
 >
-> Questo documento è un **living document**: evolve in base al feedback degli operatori agritech reali, ai limiti che emergono nell'uso, e alle opportunità che si aprono lungo il percorso. Gli orizzonti sono scritti a **livelli decrescenti di specificità** — più vicini nel tempo, più concreti; più lontani, più tematici.      
+> Questo documento è un **living document**: evolve in base al feedback degli operatori agritech reali, ai limiti che emergono nell'uso, e alle opportunità che si aprono lungo il percorso. Gli orizzonti sono scritti a **livelli decrescenti di specificità** — più vicini nel tempo, più concreti; più lontani, più tematici.
 
 ---
 
@@ -64,7 +64,7 @@ Oggi i preset (`ulivo_pugliese`, `vite_piemontese`) vivono nel codice. Un market
 
 ### Active learning sui dati di campo
 
-L'agronomo oggi usa AgriPipe ma il feedback sulla qualità del modello resta fuori dal tool. Un sistema di active learning raccoglierebbe i casi dove il modello sbaglia, li segnalerebbe per ri-etichettatura in campo, e userebbe quei dati per affinare i modelli successivi. Chiudere il loop dato → modello → decisione → feedback.  
+L'agronomo oggi usa AgriPipe ma il feedback sulla qualità del modello resta fuori dal tool. Un sistema di active learning raccoglierebbe i casi dove il modello sbaglia, li segnalerebbe per ri-etichettatura in campo, e userebbe quei dati per affinare i modelli successivi. Chiudere il loop dato → modello → decisione → feedback.
 
 ---
 

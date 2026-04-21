@@ -18,4 +18,4 @@ assignees: ''
 - [ ] criterio oggettivo 3
 
 ## Note aggiuntive
-<!-- Riferimenti a file esistenti, esempi di input/output, collegamenti a issue correlate. Opzionale. -->       
+<!-- Riferimenti a file esistenti, esempi di input/output, collegamenti a issue correlate. Opzionale. -->
