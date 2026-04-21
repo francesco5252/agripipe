@@ -52,6 +52,13 @@ class CleanerConfig:
     auto_unit_conversion: bool = False
     unit_range_heuristic: bool = False
     knowledge_path: str = "configs/agri_knowledge.yaml"
+    max_yield: float | None = None
+    salinity_tolerance: float | None = None
+    harvest_months: list[int] = field(default_factory=list)
+    soil_texture: str | None = None
+    soft_cleaning: bool = False
+    calculate_gdd: bool = False
+    t_base: float | None = None
 
 
 @dataclass
@@ -64,6 +71,7 @@ class CleanerDiagnostics:
     values_imputed: int = 0
     outliers_removed: int = 0
     out_of_bounds_removed: int = 0
+    agronomic_outliers_removed: int = 0
     duplicates_removed: int = 0
     unit_conversions: dict[str, dict[str, str]] = field(default_factory=dict)
 
@@ -119,6 +127,19 @@ class AgriCleaner:
         if "ideal_ph" in preset_data:
             lo, hi = preset_data["ideal_ph"]
             config.physical_bounds["ph"] = (float(lo), float(hi))
+        if "max_yield" in preset_data:
+            config.max_yield = float(preset_data["max_yield"])
+        if "salinity_tolerance" in preset_data:
+            config.salinity_tolerance = float(preset_data["salinity_tolerance"])
+        if "harvest_months" in preset_data:
+            config.harvest_months = [int(m) for m in preset_data["harvest_months"]]
+        if "suolo_tessitura" in preset_data:
+            config.soil_texture = str(preset_data["suolo_tessitura"])
+        
+        # Carichiamo la t_base specifica della coltura se disponibile
+        crop_type = preset_data.get("crop")
+        if crop_type and "crops" in knowledge and crop_type in knowledge["crops"]:
+            config.t_base = knowledge["crops"][crop_type].get("t_base")
 
         inst = cls(config)
         inst.diagnostics.current_preset_name = preset_name
@@ -141,13 +162,17 @@ class AgriCleaner:
             df: DataFrame grezzo (già caricato via ``load_raw``).
 
         Returns:
-            DataFrame pulito con (idealmente) zero NaN nelle colonne numeriche.
+            DataFrame pulito con punteggi di fiducia e (opzionalmente) GDD.
         """
         preset_name = self.diagnostics.current_preset_name  # preservato tra run
         self.diagnostics = CleanerDiagnostics(total_rows=len(df), current_preset_name=preset_name)
         df = df.copy()
 
-        # Step 0: Conversione unità (se abilitata)
+        # Step 0: Inizializzazione Confidence Score
+        if self.config.soft_cleaning:
+            df["confidence"] = 1.0
+
+        # Step 1: Conversione unità (se abilitata)
         df = self._convert_units(df)
 
         # Auto-detect colonne numeriche se non specificate
@@ -158,12 +183,82 @@ class AgriCleaner:
         df = self._impute_categorical(df)
         df = self._drop_sparse_columns(df)
         df = self._apply_physical_bounds(df)
+        df = self._apply_agronomic_rules(df)
         df = self._handle_outliers(df)
         df = self._impute_missing(df)
         df = self._deduplicate(df)
+        
+        # Step Finale: Calcolo GDD (Growing Degree Days)
+        if self.config.calculate_gdd:
+            df = self._calculate_gdd(df)
+            
         return df
 
     # ---- private stages ----------------------------------------------------
+
+    def _calculate_gdd(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Calcola i Gradi Giorno accumulati (GDD) basati sulla t_base."""
+        if self.config.t_base is None or "temp" not in df.columns:
+            return df
+        
+        date_col = next((c for c in ["date", "data"] if c in df.columns), None)
+        field_col = next((c for c in ["field_id", "campo"] if c in df.columns), None)
+        
+        if not date_col:
+            return df
+
+        # Calcolo GDD giornaliero: max(0, T_media - T_base)
+        # Qui usiamo 'temp' come proxy della media giornaliera se il dato è giornaliero
+        df = df.sort_values([field_col, date_col]) if field_col else df.sort_values(date_col)
+        
+        def gdd_daily(t):
+            return max(0, t - self.config.t_base)
+
+        df["gdd_daily"] = df["temp"].apply(gdd_daily)
+        
+        # Accumulo per campo (cumsum)
+        if field_col:
+            df["gdd_accumulated"] = df.groupby(field_col)["gdd_daily"].cumsum()
+        else:
+            df["gdd_accumulated"] = df["gdd_daily"].cumsum()
+            
+        logger.info("Calculated GDD with t_base=%.1f", self.config.t_base)
+        return df
+
+    def _apply_agronomic_rules(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Applica filtri basati su limiti agronomici del preset."""
+        soft = self.config.soft_cleaning
+        
+        # 1. Resa massima (yield)
+        if self.config.max_yield is not None and "yield" in df.columns:
+            mask = df["yield"] > self.config.max_yield
+            n_bad = int(mask.sum())
+            if n_bad:
+                if soft:
+                    df.loc[mask, "confidence"] *= 0.3 # Penalità forte
+                    logger.info("Agronomic soft-filter: penalized %d yield values > %.1f", n_bad, self.config.max_yield)
+                else:
+                    df.loc[mask, "yield"] = np.nan
+                    self.diagnostics.agronomic_outliers_removed += n_bad
+                    logger.info("Agronomic filter: removed %d yield values > %.1f", n_bad, self.config.max_yield)
+
+        # 2. Calendario di raccolta (harvest_months)
+        if self.config.harvest_months and "yield" in df.columns:
+            date_col = next((c for c in ["date", "data"] if c in df.columns), None)
+            if date_col:
+                temp_dates = pd.to_datetime(df[date_col], errors="coerce")
+                mask = (df["yield"] > 0) & (~temp_dates.dt.month.isin(self.config.harvest_months))
+                n_bad = int(mask.sum())
+                if n_bad:
+                    if soft:
+                        df.loc[mask, "confidence"] *= 0.1 # Dato quasi certamente errato
+                        logger.warning("Temporal soft-filter: penalized %d yield values outside window", n_bad)
+                    else:
+                        df.loc[mask, "yield"] = np.nan
+                        self.diagnostics.agronomic_outliers_removed += n_bad
+                        logger.warning("Temporal filter: removed %d yield values outside harvest window", n_bad)
+
+        return df
 
     def _convert_units(self, df: pd.DataFrame) -> pd.DataFrame:
         """Rileva e converte unità non-SI se abilitato in config."""
@@ -200,7 +295,7 @@ class AgriCleaner:
         return df.drop(columns=to_drop) if to_drop else df
 
     def _apply_physical_bounds(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Valori fuori dai limiti fisici dell'utente → ``NaN``."""
+        """Valori fuori dai limiti fisici → NaN (sempre, anche in soft_cleaning)."""
         for col, (lo, hi) in self.config.physical_bounds.items():
             if col in df.columns:
                 mask = (df[col] < lo) | (df[col] > hi)
@@ -211,31 +306,35 @@ class AgriCleaner:
         return df
 
     def _handle_outliers(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Outlier via IQR o Z-Score → ``NaN``."""
+        """Outlier statistici: NaN in hard mode, penalità confidence in soft mode."""
         method = self.config.outlier_method
+        soft = self.config.soft_cleaning
         if method == "none":
             return df
+        
         for col in self.config.numeric_columns:
-            if col not in df.columns:
-                continue
+            if col not in df.columns: continue
             s = df[col].dropna()
-            if len(s) < 10:
-                continue
+            if len(s) < 10: continue
+            
             if method == "zscore":
                 mean, std = s.mean(), s.std()
-                if std == 0:
-                    continue
+                if std == 0: continue
                 mask = ((df[col] - mean).abs() / std) > 3.0
-            else:  # iqr
+            else: # iqr
                 q1, q3 = s.quantile([0.25, 0.75])
                 iqr = q3 - q1
                 k = self.config.outlier_iqr_multiplier
                 lo, hi = q1 - k * iqr, q3 + k * iqr
                 mask = (df[col] < lo) | (df[col] > hi)
+            
             n_bad = int(mask.sum())
             if n_bad:
-                df.loc[mask, col] = np.nan
-                self.diagnostics.outliers_removed += n_bad
+                if soft:
+                    df.loc[mask, "confidence"] *= 0.5
+                else:
+                    df.loc[mask, col] = np.nan
+                    self.diagnostics.outliers_removed += n_bad
         return df
 
     def _impute_categorical(self, df: pd.DataFrame) -> pd.DataFrame:

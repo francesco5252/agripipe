@@ -105,6 +105,30 @@ def test_preset_pomodoro_siciliano():
     assert out["ph"].max() <= 7.5, "pH fuori range non rimossa"
 
 
+def test_agronomic_rules_ulivo_pugliese():
+    """Verifica che max_yield e salinity_tolerance siano caricati e applicati."""
+    cleaner = AgriCleaner.from_preset("ulivo_pugliese")
+    
+    # Verifica caricamento config
+    assert cleaner.config.max_yield == 12.0
+    assert cleaner.config.salinity_tolerance == 4.0
+    
+    # Input con valori fuori dai limiti agronomici (ma dentro quelli fisici generici)
+    df = pd.DataFrame({
+        "yield": [10.0, 50.0, 11.0],      # 50.0 è assurdo per ulivo (max 12)
+        "ec": [2.0, 10.0, 3.0],          # 10.0 è troppo salino (max 4.0)
+        "temp": [25.0, 26.0, 27.0],
+        "ph": [7.5, 7.6, 7.7]
+    })
+    
+    out = cleaner.clean(df)
+    
+    # I valori fuori limite devono essere stati rimossi e imputati (mediana)
+    assert out["yield"].max() <= 12.0
+    assert out["ec"].max() <= 4.0
+    assert cleaner.diagnostics.agronomic_outliers_removed == 2
+
+
 def test_clean_with_auto_unit_conversion():
     """Verifica che il Cleaner chiami correttamente detect_and_convert_units."""
     import pytest

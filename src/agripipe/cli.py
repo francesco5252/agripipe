@@ -175,6 +175,42 @@ def report(
 
 
 @app.command()
+def list_presets(
+    region: str | None = typer.Option(None, "--region", "-r", help="Filtra per regione."),
+) -> None:
+    """Elenca tutti i preset dell'Atlante Agronomico Italiano."""
+    try:
+        # Carichiamo un cleaner temporaneo per accedere alla knowledge
+        cleaner = AgriCleaner(AgriCleaner.from_preset("vite_nebbiolo_barolo").config)
+        presets = cleaner.knowledge.get("regional_presets", {})
+
+        if not presets:
+            typer.secho("❌ Nessun preset trovato nell'Atlante.", fg=typer.colors.RED)
+            return
+
+        typer.secho("\n🇮🇹  ATLANTE AGRONOMICO ITALIANO - AgriPipe\n", fg=typer.colors.GREEN, bold=True)
+        
+        # Raggruppiamo per regione
+        by_region = {}
+        for name, data in presets.items():
+            reg = data.get("region", "Altro")
+            if region and region.lower() not in reg.lower():
+                continue
+            if reg not in by_region:
+                by_region[reg] = []
+            by_region[reg].append((name, data.get("crop_display", "N/A"), data.get("zona", "Generica")))
+
+        for reg in sorted(by_region.keys()):
+            typer.secho(f"📍 {reg.upper()}", fg=typer.colors.CYAN, bold=True)
+            for name, crop, zona in sorted(by_region[reg]):
+                typer.echo(f"  • {name:30} | {crop:30} | {zona}")
+            typer.echo("")
+
+    except Exception as e:
+        typer.secho(f"❌ Errore nel caricamento dell'Atlante: {str(e)}", fg=typer.colors.RED)
+
+
+@app.command()
 def version() -> None:
     """Mostra la versione."""
     from agripipe import __version__

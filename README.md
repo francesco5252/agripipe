@@ -97,24 +97,38 @@ Il modello PyTorch è pronto per l'addestramento senza ulteriori trasformazioni.
 
 ---
 
-## 🏗 Come funziona: i 3 step
+## 🇮🇹 Atlante Agronomico Italiano Integrato
+
+AgriPipe non è più solo un tool statistico: ora include una base di conoscenza agronomica che copre l'intero territorio nazionale. Grazie all'**Atlante Agronomico Integrato**, il sistema è in grado di validare i dati non solo numericamente, ma biologicamente.
+
+L'Atlante comprende oltre **50 preset regionali** iper-localizzati, tra cui:
+- **Nord:** Riso Vercellese/Novarese (suoli acidi vs argillosi), Nebbiolo delle Langhe vs Valtellina, Mele del Trentino, Radicchio di Treviso (coltura invernale).
+- **Centro:** Sangiovese del Chianti e Brunello (suoli Galestro/Alberese), Zafferano dell'Aquila (alta quota), Kiwi di Latina, Tabacco Kentucky.
+- **Sud e Isole:** Pomodoro San Marzano DOP, Olivo Coratina pugliese, Bergamotto reggino, Vite dell'Etna (suoli vulcanici acidi), Vermentino di Gallura (granito).
+
+Ogni preset applica automaticamente:
+- **Validazione Temporale:** Azzeramento rese fuori dalle finestre di raccolta reali.
+- **Identità del Suolo:** Check di coerenza su pH e tessitura (es. sassi, argille, tufi).
+- **Soglie di Magnitudo:** Limiti di resa calibrati sui disciplinari DOCG/IGP reali.
+
+---
+
+## 🏗 Come funziona: i 4 motori
 
 ```
 ┌─────────────┐   ┌─────────────┐   ┌──────────────┐   ┌────────────────┐
 │ Excel / CSV │──▶│  1. LOADER  │──▶│  2. CLEANER  │──▶│ 3. TENSORIZER  │──▶ .pt + .json + .zip
 └─────────────┘   └─────────────┘   └──────────────┘   └────────────────┘
-                    schema          imputazione         scaling
-                    validation      outlier (IQR/Z)     encoding cat.
-                    SHA-256 hash    limiti fisici       train/val/test
+                    Fuzzy Match       Validazione        Scaling
+                    Batch Load        Agronomica         Encoding cat.
+                    Unit Conv.        Imputazione        Train/Val/Test
 ```
 
-1. **Loader** — legge Excel (`.xlsx`/`.xls`) o CSV, riconosce intestazioni sporche, normalizza le date (incluse quelle in formato seriale Excel), valida lo schema minimo (`date`, `field_id`, `temp`, `humidity`, `ph`, `yield`) e calcola un fingerprint SHA-256 per la tracciabilità.
+1. **Loader** — Legge Excel o CSV, gestisce il **batch loading** da intere cartelle, applica il **fuzzy matching** per riconoscere colonne scritte male o in italiano, e converte automaticamente le unità (es. Fahrenheit → Celsius).
 
-2. **Cleaner** — applica in ordine: coercizione tipi → limiti fisici configurabili → rilevamento outlier (IQR o Z-score) → imputazione valori mancanti (media, mediana, forward-fill, interpolazione temporale) → deduplica. Tutte le operazioni sono contate e riportate nei diagnostics.
+2. **Cleaner** — Il "cuore agronomico". Oltre alla pulizia statistica (IQR/Z-score), applica le regole dell'Atlante Italiano per eliminare dati biologicamente impossibili.
 
-3. **Tensorizer** — scala le feature numeriche (`StandardScaler` o `RobustScaler`), codifica le categoriche (`LabelEncoder` o `OneHotEncoder`), crea il tensor PyTorch e opzionalmente divide in train/val/test.
-
-Ogni step produce un output interrogabile e auditabile: non è una scatola nera.
+3. **Tensorizer** — Scala le feature e codifica le variabili categoriche, generando tensor pronti per PyTorch.
 
 ---
 

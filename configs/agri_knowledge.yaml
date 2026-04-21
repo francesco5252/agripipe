@@ -2,42 +2,361 @@
 # Regole iper-localizzate basate su Coltura + Zona.
 
 regional_presets:
-  # --- OLIVO ---
-  ulivo_ligure:
+  # --- LIGURIA: AGRICOLTURA EROICA TRA MARE E MONTI ---
+
+  basilico_genovese_dop:
+    region: "Liguria"
+    crop: "basil"
+    crop_display: "Basilico Genovese DOP (Prà/Ponente)"
+    zona: "Genova Prà / Riviera di Ponente"
+    suolo_tessitura: "Medio impasto (Ricco di sostanza organica)"
+    max_yield: 3.0            # t/ha per sfalcio (si raccoglie giovane)
+    temp_range: [10, 32]      # Molto sensibile al freddo (<10°C ferma la crescita)
+    ideal_ph: [6.0, 7.2]
+    harvest_months: [4, 5, 6, 7, 8, 9, 10]
+    note: "Coltura simbolo per il pesto; richiede irrigazione frequente e luce."
+
+  ulivo_taggiasco_dop:
     region: "Liguria"
     crop: "olive"
-    crop_display: "Olivo DOP Taggiasca"
-    zona: "Liguria (Riviera)"
-    suolo_tessitura: "Medio impasto / Scheletro"
-    max_yield: 5.0            # Rese basse, alta qualità (olio DOP)
+    crop_display: "Olivo DOP Taggiasca (Imperia)"
+    zona: "Provincia di Imperia (Terrazzamenti)"
+    suolo_tessitura: "Scheletro prevalente (Terreni rocciosi)"
+    max_yield: 5.5            # Rese contenute causa pendenza e sesto d'impianto
     temp_range: [-5, 38]
-    ideal_ph: [6.5, 7.5]
-    note: "Focus su terreni terrazzati e bassa meccanizzazione."
+    ideal_ph: [6.5, 7.8]
+    harvest_months: [11, 12, 1]
+    note: "Raccolta manuale o con agevolatori su reti; terreni drenanti."
 
-  ulivo_pugliese:
+  vite_eroica_liguria:
+    region: "Liguria"
+    crop: "wine_grape_doc"
+    crop_display: "Vite di Costa (Pigato/Vermentino)"
+    zona: "Riviera di Ponente / Cinque Terre"
+    suolo_tessitura: "Sabbioso-ghiaioso (Rocce disgregate)"
+    max_yield: 9.0            # Limite per DOC eroiche
+    temp_range: [-8, 36]
+    ideal_ph: [6.0, 7.5]
+    harvest_months: [9]
+    salinity_tolerance: 2.5   # Tolleranza all'aerosol marino
+    note: "Viticoltura su muretti a secco; esposizione diretta ai venti marini."
+
+  ortaggi_albenga_igp:
+    region: "Liguria"
+    crop: "vegetables"
+    crop_display: "Ortaggi della Piana di Albenga"
+    zona: "Piana di Albenga (Savona)"
+    suolo_tessitura: "Alluvionale (Franco-limoso)"
+    max_yield: 40.0           # Media pesata (Pomodoro/Zucchina)
+    temp_range: [5, 35]
+    ideal_ph: [6.5, 7.5]
+    harvest_months: [3, 4, 5, 6, 7, 8]
+    note: "Zona ad altissima fertilità; focus su Cuore di bue e Trombetta."
+
+  # --- FRIULI VENEZIA GIULIA: TRA ALPI E ADRIATICO ---
+
+  vite_collio_ponca:
+    region: "Friuli Venezia Giulia"
+    crop: "wine_grape_doc"
+    crop_display: "Vite del Collio (Ponca)"
+    zona: "Gorizia / Collio"
+    suolo_tessitura: "Ponca (Marne e Arenarie stratificate)"
+    max_yield: 11.0           # t/ha (Vini bianchi di pregio)
+    temp_range: [-10, 36]
+    ideal_ph: [7.2, 8.2]      # Terreni basici marnosi
+    harvest_months: [9]
+    note: "Suolo unico (Ponca) con ottima regolazione idrica naturale."
+
+  vite_grave_friuli:
+    region: "Friuli Venezia Giulia"
+    crop: "wine_grape_doc"
+    crop_display: "Vite delle Grave (Sassi)"
+    zona: "Pordenone / Udine (Pianura del Tagliamento)"
+    suolo_tessitura: "Ghiaioso-ciottoloso (Iper-drenante)"
+    max_yield: 13.0
+    temp_range: [-12, 38]
+    ideal_ph: [7.0, 7.8]
+    harvest_months: [9]
+    note: "I sassi riflettono la luce e creano forte escursione termica."
+
+  mais_bassa_friulana:
+    region: "Friuli Venezia Giulia"
+    crop: "maize"
+    crop_display: "Mais Bassa Friulana"
+    zona: "Bassa Friulana (Udine / Palmanova)"
+    suolo_tessitura: "Medio impasto / Alluvionale"
+    max_yield: 18.0           # Alta produttività
+    temp_range: [5, 40]
+    ideal_ph: [6.5, 7.5]
+    harvest_months: [9, 10]
+    note: "Zona ricca di risorgive; richiede irrigazione di soccorso a Luglio."
+
+  asparago_bianco_friulano:
+    region: "Friuli Venezia Giulia"
+    crop: "asparagus"
+    crop_display: "Asparago Bianco (Tavagnacco/Fossalon)"
+    zona: "Tavagnacco / Grado (Fossalon)"
+    suolo_tessitura: "Sabbioso-sciolto (Zero resistenza alla crescita)"
+    max_yield: 8.0            # t/ha
+    temp_range: [5, 28]       # Teme il caldo precoce che rovina i turioni
+    ideal_ph: [6.5, 7.5]
+    harvest_months: [4, 5]    # Raccolta primaverile
+    note: "Fondamentale la tessitura sabbiosa per la linearità del turione."
+
+  # --- VALLE D'AOSTA: AGRICOLTURA ESTREMA ALPINA ---
+
+  vite_blanc_de_morgex:
+    region: "Valle d'Aosta"
+    crop: "wine_grape_doc"
+    crop_display: "Blanc de Morgex et de La Salle"
+    zona: "Alta Valle (Morgex/La Salle) - Fino a 1200m slm"
+    suolo_tessitura: "Sabbioso-ghiaioso (Granitico)"
+    max_yield: 9.0            # Rese contenute causa altitudine
+    temp_range: [-22, 32]     # Estrema resistenza al freddo invernale
+    ideal_ph: [6.0, 7.2]
+    harvest_months: [9, 10]
+    note: "Vigneti ai piedi del Monte Bianco; pergole basse anti-gelo."
+
+  mela_reinette_vda:
+    region: "Valle d'Aosta"
+    crop: "apple"
+    crop_display: "Mela Reinette du Canada VdA"
+    zona: "Valle Centrale (Saint-Pierre / Villeneuve)"
+    suolo_tessitura: "Franco-sabbioso (Alveo glaciale)"
+    max_yield: 45.0           # Rese inferiori rispetto alla pianura
+    temp_range: [-18, 30]
+    ideal_ph: [6.0, 7.0]
+    harvest_months: [9, 10]
+    note: "Mele rugose d'alta quota; sensibile a siccità estiva alpina."
+
+  patata_vda_montagna:
+    region: "Valle d'Aosta"
+    crop: "potato"
+    crop_display: "Patata di Montagna Valdostana"
+    zona: "Valli laterali / Altipiani"
+    suolo_tessitura: "Sabbioso-sciolto (Drenaggio perfetto)"
+    max_yield: 25.0           # t/ha
+    temp_range: [0, 28]       # Teme il calore eccessivo (stress tubero)
+    ideal_ph: [5.5, 6.5]      # Predilige terreni sub-acidi
+    harvest_months: [8, 9]
+    note: "Zero ristagno idrico; eccellente conservabilità naturale."
+
+  genepy_vda:
+    region: "Valle d'Aosta"
+    crop: "medicinal_herbs"
+    crop_display: "Genepy (Artemisia alpina)"
+    zona: "Alpeggi d'alta quota (>1500m)"
+    suolo_tessitura: "Povero / Roccioso / Siliceo"
+    max_yield: 1.5            # t/ha di biomassa secca
+    temp_range: [-25, 25]
+    ideal_ph: [5.5, 7.0]
+    harvest_months: [7, 8]    # Raccolta estiva in quota
+    note: "Coltura per liquori premium; richiede esposizione solare massima."
+
+  # --- PIEMONTE: L'ECCELLENZA TERRITORIALE ---
+
+  # --- PUGLIA E BASILICATA: IL GRANAIO E L'OLIVETO D'ITALIA ---
+
+  ulivo_coratina_bari:
     region: "Puglia"
     crop: "olive"
-    crop_display: "Olivo Intensivo (Salento)"
-    zona: "Puglia (Salento/Bari)"
-    suolo_tessitura: "Terra rossa / Calcareo"
-    max_yield: 12.0           # Rese alte, impianti intensivi
-    temp_range: [-2, 45]
-    ideal_ph: [7.0, 8.5]
-    salinity_tolerance: 4.0
-    note: "Pianure assolate, alta tolleranza al calore."
+    crop_display: "Olivo Coratina (Terra di Bari)"
+    zona: "Nord Barese (Andria / Corato / Bitonto)"
+    suolo_tessitura: "Calcareo / Roccioso (Terre Rosse)"
+    max_yield: 10.0           # Rese elevate in anni di carica
+    temp_range: [-5, 45]      # Alta tolleranza al calore estivo
+    ideal_ph: [7.5, 8.5]      # Terreni molto basici
+    harvest_months: [11, 12, 1]
+    note: "Varietà ricchissima di polifenoli; esige suoli ben drenati."
 
-  # --- GRANO ---
-  grano_siciliano:
+  grano_duro_tavoliere_foggia:
+    region: "Puglia"
+    crop: "durum_wheat"
+    crop_display: "Grano Duro del Tavoliere"
+    zona: "Provincia di Foggia (Tavoliere delle Puglie)"
+    suolo_tessitura: "Argillo-limoso profondo"
+    max_yield: 6.5            # Potenziale elevato per il Sud
+    temp_range: [-5, 45]
+    ideal_ph: [7.5, 8.5]
+    harvest_months: [5, 6]    # Mietitura precoce (Giugno!)
+    note: "Il 'Granaio d'Italia'; fondamentale la resistenza allo stress termico di maggio."
+
+  vite_primitivo_manduria:
+    region: "Puglia"
+    crop: "wine_grape_doc"
+    crop_display: "Primitivo di Manduria"
+    zona: "Manduria / Sava / Maruggio (TA/BR)"
+    suolo_tessitura: "Terra Rossa su roccia calcarea"
+    max_yield: 9.0            # Disciplinare DOCG per l'Alberello
+    temp_range: [0, 45]
+    ideal_ph: [7.0, 8.2]
+    harvest_months: [8, 9]    # Vendemmia anticipata (Agosto!)
+    note: "Allevamento ad alberello; accumula zuccheri molto velocemente."
+
+  uva_mensa_puglia:
+    region: "Puglia"
+    crop: "table_grape"
+    crop_display: "Uva da Mensa (Italia/Vittoria)"
+    zona: "Sud Barese / Arco Ionico"
+    suolo_tessitura: "Medio impasto / Sabbioso"
+    max_yield: 35.0           # Coltura molto produttiva sotto tendone
+    temp_range: [5, 42]
+    ideal_ph: [6.5, 7.8]
+    harvest_months: [7, 8, 9, 10, 11] # Stagione lunga con diverse varietà
+    note: "Richiede irrigazione massiccia; protetta da teli plastici."
+
+  carciofo_brindisino_igp:
+    region: "Puglia"
+    crop: "artichoke"
+    crop_display: "Carciofo Brindisino IGP"
+    zona: "Litorale Brindisino / Mesagne"
+    suolo_tessitura: "Sabbioso-limoso (Franco)"
+    max_yield: 12.0
+    temp_range: [2, 32]       # Teme le gelate che anneriscono i capolini
+    ideal_ph: [6.8, 8.0]
+    harvest_months: [11, 12, 1, 2, 3, 4] # Produzione invernale
+    salinity_tolerance: 3.5   # Elevata tolleranza in zone costiere
+    note: "Varietà precoce; raccolta manuale scalare."
+
+  vite_aglianico_vulture:
+    region: "Basilicata"
+    crop: "wine_grape_docg"
+    crop_display: "Aglianico del Vulture"
+    zona: "Rionero / Barile / Venosa"
+    suolo_tessitura: "Vulcanico (Tufo e Ceneri)"
+    max_yield: 10.0
+    temp_range: [-8, 38]
+    ideal_ph: [6.0, 7.2]      # Suoli vulcanici neutro-acidi
+    harvest_months: [10, 11]  # Vendemmia tardiva di montagna
+    note: "Viticoltura su vulcano spento; clima continentale del Sud."
+
+  # --- CALABRIA: LA TERRA DEGLI AGRUMI E DEL SOLE ---
+
+  bergamotto_reggio_calabria:
+    region: "Calabria"
+    crop: "citrus"
+    crop_display: "Bergamotto di Reggio Calabria"
+    zona: "Fascia Costiera Reggina (Villa S.G. a Monasterace)"
+    suolo_tessitura: "Alluvionale / Medio impasto"
+    max_yield: 25.0           # t/ha
+    temp_range: [5, 42]       # Estremamente sensibile al gelo; clima mite tutto l'anno
+    ideal_ph: [6.5, 7.8]
+    harvest_months: [11, 12, 1, 2, 3]
+    note: "Unico al mondo; microclima irripetibile con venti caldi africani."
+
+  cipolla_rossa_tropea_igp:
+    region: "Calabria"
+    crop: "vegetables"
+    crop_display: "Cipolla Rossa di Tropea IGP"
+    zona: "Costa Tirrenica (Amantea / Nicotera)"
+    suolo_tessitura: "Sabbioso (Litorale)"
+    max_yield: 30.0
+    temp_range: [8, 35]
+    ideal_ph: [6.0, 7.5]
+    harvest_months: [4, 5, 6, 7]
+    salinity_tolerance: 3.0   # Coltivata a ridosso del mare
+    note: "Sapore dolce legato ai terreni sabbiosi litoranei."
+
+  clementine_calabria_igp:
+    region: "Calabria"
+    crop: "citrus"
+    crop_display: "Clementine di Calabria IGP"
+    zona: "Piana di Sibari / Piana di Gioia Tauro"
+    suolo_tessitura: "Medio impasto / Profondo"
+    max_yield: 22.0
+    temp_range: [2, 40]
+    ideal_ph: [6.5, 7.5]
+    harvest_months: [10, 11, 12, 1, 2]
+    note: "Primo polo produttivo italiano; sensibile a stress idrico estivo."
+
+  ulivo_calabria_igp:
+    region: "Calabria"
+    crop: "olive"
+    crop_display: "Olivo Calabria IGP (Carolea)"
+    zona: "Tutto il territorio regionale"
+    suolo_tessitura: "Argilloso-limoso / Scheletro"
+    max_yield: 8.0
+    temp_range: [-5, 45]
+    ideal_ph: [6.8, 8.2]
+    harvest_months: [10, 11, 12]
+    note: "Cultivar Carolea dominante; oli equilibrati con sentori di carciofo."
+
+  cedro_riviera_dei_cedri:
+    region: "Calabria"
+    crop: "citrus"
+    crop_display: "Cedro della Riviera dei Cedri"
+    zona: "Alto Tirreno Cosentino (Santa Maria del Cedro)"
+    suolo_tessitura: "Sciolto / Alluvionale"
+    max_yield: 20.0
+    temp_range: [5, 38]
+    ideal_ph: [6.0, 7.2]
+    harvest_months: [10, 11, 12]
+    note: "Varietà Liscio Diamante; sacro per la cultura ebraica."
+
+  # --- SICILIA: L'ISOLA DELLE MERAVIGLIE ---
+
+  vite_etna_doc:
+    region: "Sicilia"
+    crop: "wine_grape_doc"
+    crop_display: "Vite dell'Etna (Vulcanico)"
+    zona: "Pendici dell'Etna (Catania) - Fino a 1000m slm"
+    suolo_tessitura: "Sabbioso vulcanico (Ceneri e Lapilli)"
+    max_yield: 9.0
+    temp_range: [-5, 38]
+    ideal_ph: [5.5, 7.0]      # Terreni vulcanici acidi, unici nel Sud basico
+    harvest_months: [9, 10]
+    note: "Viticoltura eroica su sabbie nere; pH acido e mineralità estrema."
+
+  pomodoro_pachino_igp:
+    region: "Sicilia"
+    crop: "tomato"
+    crop_display: "Pomodoro di Pachino IGP"
+    zona: "Pachino / Portopalo / Noto (SR)"
+    suolo_tessitura: "Sabbioso costiero"
+    max_yield: 80.0
+    temp_range: [10, 45]
+    ideal_ph: [6.5, 8.0]
+    harvest_months: [4, 5, 6, 7, 8, 9, 10, 11] # Ciclo lunghissimo
+    salinity_tolerance: 5.0   # Altissima tolleranza (necessaria per il gusto)
+    note: "Acque d'irrigazione salmastre; il sale è la chiave del sapore."
+
+  arancia_rossa_sicilia_igp:
+    region: "Sicilia"
+    crop: "citrus"
+    crop_display: "Arancia Rossa di Sicilia IGP"
+    zona: "Piana di Catania / Enna / Siracusa"
+    suolo_tessitura: "Alluvionale / Vulcanico"
+    max_yield: 30.0
+    temp_range: [2, 42]
+    ideal_ph: [6.5, 7.8]
+    harvest_months: [12, 1, 2, 3, 4]
+    note: "Pigmentazione legata all'escursione termica notturna dell'Etna."
+
+  pistacchio_bronte_dop:
+    region: "Sicilia"
+    crop: "pistachio"
+    crop_display: "Pistacchio di Bronte DOP"
+    zona: "Bronte / Adrano / Biancavilla"
+    suolo_tessitura: "Roccia Lavica / Sciolto"
+    max_yield: 3.5            # t/ha (in guscio, solo anni dispari)
+    temp_range: [-8, 42]
+    ideal_ph: [5.5, 7.2]
+    harvest_months: [8, 9]
+    note: "Raccolta biennale (anni dispari); cresce su lave fessurate."
+
+  grano_duro_antico_sicilia:
     region: "Sicilia"
     crop: "durum_wheat"
-    crop_display: "Grano Duro Antico Siciliano"
-    zona: "Sicilia (Entroterra)"
+    crop_display: "Grani Antichi (Tumminia/Russello)"
+    zona: "Entroterra Siciliano (Enna / Caltanissetta)"
     suolo_tessitura: "Argilloso (Vertisuoli)"
-    max_yield: 4.5
-    temp_range: [-5, 45]
-    harvest_months: [5, 6]    # Mietitura precoce
+    max_yield: 2.5            # Rese basse per conservare biodiversità
+    temp_range: [-5, 48]      # Massima tolleranza al calore
     ideal_ph: [7.5, 8.5]
-    note: "Grano duro antico, suoli pesanti e fessurati in estate."
+    harvest_months: [5, 6]
+    note: "Tumminia è a ciclo breve (marzuolo); Russello a paglia alta."
+
+  # --- SARDEGNA: TERRA DI VENTO E GRANITO ---
 
   grano_emiliano:
     region: "Emilia-Romagna"
@@ -51,96 +370,980 @@ regional_presets:
     ideal_ph: [6.0, 7.5]
     note: "Grano tenero per panificazione, suoli fertili e freschi."
 
-  # --- VITE ---
-  vite_piemontese:
+  # --- PIEMONTE: L'ECCELLENZA TERRITORIALE ---
+
+  vite_nebbiolo_barolo:
     region: "Piemonte"
     crop: "wine_grape_docg"
-    crop_display: "Vite Nebbiolo (Barolo DOCG)"
-    zona: "Langhe / Roero"
-    suolo_tessitura: "Marne / Argille calcaree"
-    max_yield: 8.0
-    temp_range: [-15, 36]
-    harvest_months: [9, 10]
-    ideal_ph: [7.0, 8.0]
-    note: "Grandi vini rossi (DOCG), focus su microclimi di collina."
+    crop_display: "Nebbiolo da Barolo (Langhe)"
+    zona: "Langhe (Barolo, La Morra, Serralunga)"
+    suolo_tessitura: "Argillo-limoso calcareo (Marne di Sant'Agata)"
+    max_yield: 8.0            # Disciplinare Barolo DOCG (t/ha)
+    temp_range: [-15, 38]
+    ideal_ph: [7.2, 8.2]      # Terreni basici/calcarei
+    harvest_months: [10]      # Ottobre
+    note: "Focus su longevità e struttura; terreni basici."
 
-  # --- LOMBARDIA ---
-  riso_lombardo:
+  vite_nebbiolo_alto_piemonte:
+    region: "Piemonte"
+    crop: "wine_grape_docg"
+    crop_display: "Nebbiolo Alto Piemonte (Gattinara/Ghemme)"
+    zona: "Alto Piemonte (Vercellese/Novarese)"
+    suolo_tessitura: "Sabbioso-ghiaioso vulcanico"
+    max_yield: 9.0            # Disciplinare Gattinara/Ghemme
+    temp_range: [-18, 35]
+    ideal_ph: [4.5, 6.0]      # Terreni acidi vulcanici (opposto del Barolo!)
+    harvest_months: [9, 10]
+    note: "Vini minerali; terreni acidi unici in Piemonte."
+
+  riso_novarese:
+    region: "Piemonte"
+    crop: "rice"
+    crop_display: "Riso Novarese (Carnaroli/Arborio)"
+    zona: "Novarese (Bassa Novarese)"
+    suolo_tessitura: "Sabbioso-limoso (Terrazzi fluvioglaciali)"
+    max_yield: 7.5
+    temp_range: [5, 36]
+    ideal_ph: [5.0, 6.5]
+    harvest_months: [9, 10]
+    salinity_tolerance: 1.5
+    note: "Terreni più leggeri; acque di risorgiva."
+
+  riso_vercellese:
+    region: "Piemonte"
+    crop: "rice"
+    crop_display: "Riso Vercellese"
+    zona: "Vercellese (Piana alluvionale)"
+    suolo_tessitura: "Argillo-limoso (Terre forti)"
+    max_yield: 8.5
+    temp_range: [8, 38]
+    ideal_ph: [5.5, 7.0]
+    harvest_months: [9, 10]
+    salinity_tolerance: 1.2
+    note: "Suoli pesanti; gestione storica Canale Cavour."
+
+  nocciola_piemonte_alta_langa:
+    region: "Piemonte"
+    crop: "hazelnut"
+    crop_display: "Nocciola Tonda Gentile (Alta Langa)"
+    zona: "Alta Langa (>500m slm)"
+    suolo_tessitura: "Sciolto / Scheletro prevalente"
+    max_yield: 2.8
+    temp_range: [-18, 34]
+    ideal_ph: [6.0, 7.5]
+    harvest_months: [8, 9]
+    note: "Focus qualità del seme; terreni poveri."
+
+  mais_cuneese_irriguo:
+    region: "Piemonte"
+    crop: "maize"
+    crop_display: "Mais da granella (Pianura Cuneese)"
+    zona: "Cuneo / Savigliano / Fossano"
+    suolo_tessitura: "Franco-limoso alluvionale (Profondo)"
+    max_yield: 16.0
+    temp_range: [5, 40]
+    ideal_ph: [6.0, 7.2]
+    harvest_months: [9, 10, 11]
+    note: "Alta produttività; irrigazione critica a Luglio."
+
+  mela_cuneese:
+    region: "Piemonte"
+    crop: "apple"
+    crop_display: "Mela Rossa Cuneo IGP"
+    zona: "Saluzzese / Pinerolese"
+    suolo_tessitura: "Franco-sabbioso (Ben drenato)"
+    max_yield: 55.0
+    temp_range: [-15, 32]
+    ideal_ph: [6.0, 7.0]
+    harvest_months: [9, 10]
+    note: "Necessaria escursione termica per colorazione."
+
+  # --- LOMBARDIA: LA FABBRICA DEL CIBO ---
+
+  mais_intensivo_padano:
+    region: "Lombardia"
+    crop: "maize"
+    crop_display: "Mais da granella (Cremona/Mantova/Brescia)"
+    zona: "Bassa Padana Irrigua"
+    suolo_tessitura: "Franco-argilloso (Profondo e fertile)"
+    max_yield: 20.0           # Rese record mondiali per l'insilato e granella
+    temp_range: [5, 42]
+    ideal_ph: [6.5, 7.5]      # Terreni neutri
+    harvest_months: [9, 10]
+    note: "Alimentazione filiere DOP (Grana Padano); irrigazione a scorrimento."
+
+  riso_lomellino:
     region: "Lombardia"
     crop: "rice"
-    crop_display: "Riso Carnaroli"
-    zona: "Lomellina (Pavia)"
-    suolo_tessitura: "Sommerso / Franco-limoso"
-    max_yield: 7.0
-    temp_range: [-8, 35]
-    harvest_months: [9, 10]
+    crop_display: "Riso della Lomellina (Pavia)"
+    zona: "Pavia (Lomellina)"
+    suolo_tessitura: "Sabbioso-limoso (Terrazzi alluvionali)"
+    max_yield: 7.5
+    temp_range: [5, 37]
     ideal_ph: [5.5, 7.0]
-    note: "Risaie allagate, richiede gestione idrica precisa."
+    harvest_months: [9, 10]
+    note: "Suoli più sciolti del Vercellese; focus su varietà Carnaroli."
 
-  # --- VENETO ---
-  prosecco_veneto:
+  vite_franciacorta_docg:
+    region: "Lombardia"
+    crop: "wine_grape_docg"
+    crop_display: "Vite Metodo Classico (Franciacorta)"
+    zona: "Erbusco / Corte Franca / Iseo"
+    suolo_tessitura: "Morenico (Ghiaioso-sabbioso)"
+    max_yield: 12.0           # Limite disciplinare per basi spumante
+    temp_range: [-12, 38]
+    ideal_ph: [6.5, 7.8]
+    harvest_months: [8, 9]    # Vendemmia precoce (Agosto!)
+    note: "Vendemmia anticipata per preservare l'acidità (basi spumante)."
+
+  mela_valtellina_igp:
+    region: "Lombardia"
+    crop: "apple"
+    crop_display: "Mela della Valtellina IGP"
+    zona: "Valtellina (Sondrio)"
+    suolo_tessitura: "Franco-sabbioso (Alveo fluviale)"
+    max_yield: 65.0
+    temp_range: [-20, 32]
+    ideal_ph: [5.5, 6.8]      # Terreni leggermente acidi
+    harvest_months: [9, 10, 11]
+    note: "Forte escursione termica alpina; terreni leggeri e drenanti."
+
+  vite_nebbiolo_valtellina:
+    region: "Lombardia"
+    crop: "wine_grape_docg"
+    crop_display: "Nebbiolo delle Alpi (Sforzato/Inferno)"
+    zona: "Valtellina (Sondrio) - Terrazzamenti"
+    suolo_tessitura: "Sabbioso / Roccia affiorante"
+    max_yield: 8.0
+    temp_range: [-15, 35]
+    ideal_ph: [4.5, 6.0]      # Terreni acidi di montagna
+    harvest_months: [10, 11]  # Vendemmia tardiva + appassimento
+    note: "Viticoltura eroica su terrazzamenti; pH acido."
+
+  olivo_garda_dop:
+    region: "Lombardia"
+    crop: "olive"
+    crop_display: "Olivo del Garda DOP"
+    zona: "Riviera Bresciana del Garda"
+    suolo_tessitura: "Medio impasto / Morenico"
+    max_yield: 4.5            # Basse rese, alta qualità
+    temp_range: [-10, 38]     # Microclima lacustre protetto
+    ideal_ph: [6.8, 7.8]
+    harvest_months: [10, 11]
+    note: "L'olivo più a Nord d'Europa; sensibile a gelate improvvise."
+
+  # --- VENETO: VINO, ORTO E TRADIZIONE ---
+
+  vite_prosecco_docg:
     region: "Veneto"
     crop: "wine_grape_docg"
-    crop_display: "Vite Prosecco DOCG"
-    zona: "Valdobbiadene / Conegliano"
-    suolo_tessitura: "Vulcanico / Marnoso-arenaceo"
-    max_yield: 13.5
-    temp_range: [-10, 35]
-    harvest_months: [8, 9]
-    ideal_ph: [6.5, 7.5]
-    note: "Colline UNESCO, microclimi ventilati."
+    crop_display: "Vite Prosecco DOCG (Conegliano/Valdobbiadene)"
+    zona: "Colline Trevigiane (UNESCO)"
+    suolo_tessitura: "Argillo-limoso calcareo (Marnoso-arenaceo)"
+    max_yield: 13.5           # Disciplinare Prosecco DOCG
+    temp_range: [-10, 36]
+    ideal_ph: [7.0, 8.2]
+    harvest_months: [9]       # Settembre
+    note: "Focus su aromaticità; terreni calcarei che esaltano i profumi."
 
-  # --- TRENTINO-ALTO ADIGE ---
-  mela_trentina:
-    region: "Trentino-Alto Adige"
-    crop: "apple"
-    crop_display: "Mela Melinda DOP"
-    zona: "Val di Non"
-    suolo_tessitura: "Morenico / Ghiaioso"
-    max_yield: 60.0
-    temp_range: [-20, 32]
+  vite_amarone_valpolicella:
+    region: "Veneto"
+    crop: "wine_grape_docg"
+    crop_display: "Vite Amarone della Valpolicella"
+    zona: "Verona (Valpolicella Classica)"
+    suolo_tessitura: "Calcareo-vulcanico"
+    max_yield: 12.0           # Prima della cernita per appassimento
+    temp_range: [-12, 38]
+    ideal_ph: [7.2, 8.5]
     harvest_months: [9, 10]
-    ideal_ph: [6.0, 7.0]
-    note: "Richiede fabbisogno freddo invernale (>1200 ore)."
+    note: "Uve destinate all'appassimento; terreni basaltici e calcarei."
 
-  # --- EMILIA-ROMAGNA (secondo preset) ---
-  pomodoro_emiliano:
-    region: "Emilia-Romagna"
-    crop: "tomato"
-    crop_display: "Pomodoro da Industria"
-    zona: "Parma / Piacenza"
-    suolo_tessitura: "Alluvionale / Limoso"
-    max_yield: 90.0
-    temp_range: [-5, 38]
-    harvest_months: [7, 8, 9]
-    ideal_ph: [6.0, 7.0]
-    note: "Pianura Padana irrigua, filiera industriale."
+  radicchio_treviso_igp:
+    region: "Veneto"
+    crop: "radicchio"
+    crop_display: "Radicchio Rosso di Treviso IGP"
+    zona: "Treviso / Castelfranco / Scorzè"
+    suolo_tessitura: "Medio impasto / Ricco d'acqua"
+    max_yield: 7.0            # t/ha
+    temp_range: [-5, 30]      # Richiede il freddo per la colorazione
+    ideal_ph: [6.5, 7.5]
+    harvest_months: [10, 11, 12, 1, 2] # Coltura invernale!
+    note: "Richiede imbianchimento in acqua risorgiva; fondamentale il freddo invernale."
 
-  # --- TOSCANA ---
-  vite_toscana:
+  mais_veneto_orientale:
+    region: "Veneto"
+    crop: "maize"
+    crop_display: "Mais da granella (Padova/Rovigo/Venezia)"
+    zona: "Pianura Veneta Orientale"
+    suolo_tessitura: "Alluvionale / Limoso-argilloso"
+    max_yield: 18.0
+    temp_range: [5, 40]
+    ideal_ph: [6.5, 7.8]
+    harvest_months: [9, 10]
+    note: "Zone bonificate, suoli profondi e ricchi di nutrienti."
+
+  ciliegia_marostica_igp:
+    region: "Veneto"
+    crop: "cherry"
+    crop_display: "Ciliegia di Marostica IGP"
+    zona: "Marostica / Colline Vicentine"
+    suolo_tessitura: "Vulcanico / Ben drenato"
+    max_yield: 10.0           # t/ha
+    temp_range: [-10, 32]
+    ideal_ph: [6.0, 7.0]
+    harvest_months: [5, 6]    # Maggio/Giugno (Precoce)
+    note: "Sensibile a piogge eccessive pre-raccolta (cracking)."
+
+  # --- TOSCANA: IL RINASCIMENTO AGRONOMICO ---
+
+  vite_sangiovese_chianti_brunello:
     region: "Toscana"
     crop: "wine_grape_docg"
-    crop_display: "Vite Chianti DOCG (Sangiovese)"
-    zona: "Chianti Classico"
-    suolo_tessitura: "Galestro / Alberese"
-    max_yield: 9.0
+    crop_display: "Sangiovese (Chianti Classico / Brunello)"
+    zona: "Montalcino / Gaiole / Castellina / Radda"
+    suolo_tessitura: "Galestro (Scisti argillosi) / Alberese (Calcare)"
+    max_yield: 8.5            # Limite rigido per Brunello e Chianti Classico
     temp_range: [-10, 38]
+    ideal_ph: [7.5, 8.3]      # Terreni basici/calcarei tipici
     harvest_months: [9, 10]
-    ideal_ph: [6.5, 7.5]
-    note: "Colline toscane, varietà Sangiovese."
+    note: "Drenaggio eccellente; il pH elevato favorisce la struttura del tannino."
 
-  ulivo_toscano:
+  vite_bolgheri_super_tuscan:
+    region: "Toscana"
+    crop: "wine_grape_doc"
+    crop_display: "Vite Bolgheri / Costa Toscana"
+    zona: "Castagneto Carducci / Bolgheri / Maremma"
+    suolo_tessitura: "Sabbioso-argilloso (Terrazzi marini)"
+    max_yield: 9.0
+    temp_range: [-5, 40]      # Clima mediterraneo più caldo
+    ideal_ph: [6.8, 7.8]
+    harvest_months: [8, 9]    # Vendemmia spesso anticipata (Merlot/Cabernet)
+    salinity_tolerance: 2.8   # Elevata esposizione all'aerosol marino
+    note: "Focus su vitigni internazionali; tollera lo stress termico estivo."
+
+  ulivo_toscano_igp_colline:
     region: "Toscana"
     crop: "olive"
-    crop_display: "Olivo DOP Toscano"
-    zona: "Colline Pisane/Senesi"
-    suolo_tessitura: "Argilloso calcareo"
-    max_yield: 4.5
+    crop_display: "Olivo Toscano IGP"
+    zona: "Colline Fiorentine / Senesi / Aretine"
+    suolo_tessitura: "Medio impasto / Galestro"
+    max_yield: 4.5            # Alta qualità, bassa resa
     temp_range: [-8, 38]
     ideal_ph: [6.5, 7.5]
-    note: "Olio IGP, cultivar Frantoio/Leccino/Moraiolo."
+    harvest_months: [10, 11]  # Raccolta precoce per preservare i polifenoli
+    note: "Varietà Frantoio/Leccino/Moraiolo; sensibile a gelate primaverili."
 
-  # --- SICILIA ---
+  grano_duro_val_dorcia:
+    region: "Toscana"
+    crop: "durum_wheat"
+    crop_display: "Grano Duro (Val d'Orcia / Crete)"
+    zona: "Pienza / San Quirico / Crete Senesi"
+    suolo_tessitura: "Argilloso pesante (Crete)"
+    max_yield: 5.5            # Rese contenute ma proteine elevate
+    temp_range: [-10, 42]
+    ideal_ph: [7.8, 8.5]      # Suoli molto basici
+    harvest_months: [6, 7]
+    note: "Suoli difficili da lavorare (si crepano in estate); ritenzione idrica elevata."
+
+  tabacco_kentucky_valtychiana:
+    region: "Toscana"
+    crop: "tobacco"
+    crop_display: "Tabacco Kentucky (Sigaro Toscano)"
+    zona: "Val di Chiana / Arezzo"
+    suolo_tessitura: "Franco-limoso alluvionale"
+    max_yield: 3.5            # t/ha di foglia secca
+    temp_range: [10, 38]
+    ideal_ph: [6.0, 7.2]
+    harvest_months: [8, 9]
+    note: "Coltura idroesigente; richiede monitoraggio costante dell'umidità suolo."
+
+  # --- UMBRIA: IL CUORE VERDE D'ITALIA ---
+
+  vite_sagrantino_montefalco_docg:
+    region: "Umbria"
+    crop: "wine_grape_docg"
+    crop_display: "Sagrantino di Montefalco"
+    zona: "Montefalco / Bevagna / Gualdo Cattaneo"
+    suolo_tessitura: "Argillo-limoso calcareo (Terre forti)"
+    max_yield: 8.0            # Disciplinare molto restrittivo
+    temp_range: [-12, 38]
+    ideal_ph: [7.5, 8.5]      # Elevato calcare attivo
+    harvest_months: [10]      # Vendemmia tardiva per maturazione tannica
+    note: "Uno dei vini più ricchi di polifenoli al mondo; esige suoli pesanti."
+
+  vite_orvieto_classico:
+    region: "Umbria"
+    crop: "wine_grape_doc"
+    crop_display: "Orvieto Classico (Suoli Vulcanici)"
+    zona: "Orvieto / Rupe / Calanchi"
+    suolo_tessitura: "Tufo vulcanico / Sabbioso"
+    max_yield: 11.0
+    temp_range: [-10, 40]
+    ideal_ph: [6.5, 7.5]
+    harvest_months: [9]
+    note: "Suoli porosi vulcanici; drenaggio naturale estremamente rapido."
+
+  lenticchia_castelluccio_igp:
+    region: "Umbria"
+    crop: "legumes"
+    crop_display: "Lenticchia di Castelluccio IGP"
+    zona: "Altopiano di Castelluccio di Norcia (>1400m slm)"
+    suolo_tessitura: "Sciolto / Roccioso (Sulle marne)"
+    max_yield: 1.5            # Resa bassissima ma altissima qualità
+    temp_range: [-20, 25]     # Temperature estive fresche; tollera gelate primaverili
+    ideal_ph: [6.0, 7.5]
+    harvest_months: [7, 8]
+    note: "Fioritura famosa; agricoltura eroica d'alta quota appenninica."
+
+  ulivo_umbria_dop:
+    region: "Umbria"
+    crop: "olive"
+    crop_display: "Olivo DOP Umbria (Colli Martani/Assisi)"
+    zona: "Assisi / Spoleto / Trevi / Colli Martani"
+    suolo_tessitura: "Scheletro prevalente (Sulle pendici)"
+    max_yield: 4.5
+    temp_range: [-10, 38]
+    ideal_ph: [6.8, 8.0]
+    harvest_months: [10, 11]
+    note: "Varietà Moraiolo prevalente; oli molto fruttati ed erbacei."
+
+  tabacco_alta_valle_tevere:
+    region: "Umbria"
+    crop: "tobacco"
+    crop_display: "Tabacco Bright/Kentucky (Alta Valle Tevere)"
+    zona: "Città di Castello / San Giustino"
+    suolo_tessitura: "Franco-limoso alluvionale"
+    max_yield: 3.8            # t/ha di foglia essiccata
+    temp_range: [10, 38]
+    ideal_ph: [6.0, 7.2]
+    harvest_months: [8, 9]
+    note: "L'Umbria è leader nazionale; richiede irrigazione precisa a luglio."
+
+  # --- MARCHE: TRA APPENNINO E ADRIATICO ---
+
+  vite_verdicchio_marche:
+    region: "Marche"
+    crop: "wine_grape_docg"
+    crop_display: "Verdicchio (Jesi / Matelica)"
+    zona: "Castelli di Jesi / Matelica (Alte colline)"
+    suolo_tessitura: "Argillo-limoso (Argille azzurre)"
+    max_yield: 10.5
+    temp_range: [-10, 38]
+    ideal_ph: [7.5, 8.2]
+    harvest_months: [9]
+    note: "Vino bianco di grande struttura; i suoli argillosi danno sapidità."
+
+  girasole_marche:
+    region: "Marche"
+    crop: "oilseed"
+    crop_display: "Girasole Marchigiano"
+    zona: "Ancona / Macerata / Fermo"
+    suolo_tessitura: "Medio impasto / Argilloso"
+    max_yield: 3.5            # t/ha di granella
+    temp_range: [10, 42]
+    ideal_ph: [6.5, 7.8]
+    harvest_months: [8, 9]
+    note: "Tipica coltura marchigiana non irrigua; soffre ristagni idrici."
+
+  grano_duro_marchigiano:
+    region: "Marche"
+    crop: "durum_wheat"
+    crop_display: "Grano Duro per Pasta"
+    zona: "Colline Pesaresi e Picene"
+    suolo_tessitura: "Argilloso (Terre forti)"
+    max_yield: 6.5
+    temp_range: [-5, 40]
+    ideal_ph: [7.5, 8.5]
+    harvest_months: [6, 7]
+    note: "Focus su contenuto proteico; terreni basici calcarei."
+
+  ulivo_marche_igp:
+    region: "Marche"
+    crop: "olive"
+    crop_display: "Olivo Marche IGP (Ascolana/Raggiola)"
+    zona: "Tutto il territorio collinare"
+    suolo_tessitura: "Medio impasto / Scheletro"
+    max_yield: 5.0
+    temp_range: [-8, 38]
+    ideal_ph: [6.8, 8.0]
+    harvest_months: [10, 11]
+    note: "Varietà Ascolana Tenera caratteristica; sensibile a gelate invernali."
+
+  vite_rosso_conero_docg:
+    region: "Marche"
+    crop: "wine_grape_docg"
+    crop_display: "Rosso Conero (Montepulciano)"
+    zona: "Promontorio del Conero (Ancona)"
+    suolo_tessitura: "Calcareo sedimentario (Marino)"
+    max_yield: 9.0
+    temp_range: [-5, 38]
+    ideal_ph: [7.8, 8.5]      # Suoli molto calcarei a ridosso del mare
+    harvest_months: [10]
+    salinity_tolerance: 3.0
+    note: "Vigne a picco sul mare; il suolo calcareo è dominante."
+
+  # --- LAZIO: TERRA VULCANICA E AGRO PONTINO ---
+
+  nocciola_romana_dop:
+    region: "Lazio"
+    crop: "hazelnut"
+    crop_display: "Nocciola Romana DOP (Monti Cimini)"
+    zona: "Viterbese / Monti Cimini"
+    suolo_tessitura: "Vulcanico (Tufo e Peperino)"
+    max_yield: 3.5            # t/ha
+    temp_range: [-15, 36]
+    ideal_ph: [6.0, 7.0]      # Terreni vulcanici sub-acidi, ricchi di potassio
+    harvest_months: [8, 9]
+    note: "Coltura leader globale; forte vocazione per industria dolciaria."
+
+  kiwi_latina_igp:
+    region: "Lazio"
+    crop: "kiwi"
+    crop_display: "Kiwi di Latina IGP"
+    zona: "Agro Pontino (Latina / Cisterna)"
+    suolo_tessitura: "Franco-sabbioso (Bonifica)"
+    max_yield: 40.0           # Alta produttività
+    temp_range: [-5, 38]      # Sensibile a gelate primaverili (Marzo/Aprile)
+    ideal_ph: [6.0, 7.2]
+    harvest_months: [10, 11]
+    note: "Idroesigente in estate ma zero tolleranza al ristagno idrico invernale."
+
+  vite_frascati_docg:
+    region: "Lazio"
+    crop: "wine_grape_docg"
+    crop_display: "Frascati Superiore (Castelli Romani)"
+    zona: "Castelli Romani (Frascati / Grottaferrata)"
+    suolo_tessitura: "Pozzolana (Vulcanico iper-drenante)"
+    max_yield: 11.0
+    temp_range: [-5, 40]
+    ideal_ph: [6.5, 7.5]
+    harvest_months: [9, 10]
+    note: "Suoli leggerissimi e porosi; uve Malvasia e Trebbiano."
+
+  carciofo_romanesco_igp:
+    region: "Lazio"
+    crop: "artichoke"
+    crop_display: "Carciofo Romanesco IGP"
+    zona: "Litorale Nord (Cerveteri / Ladispoli)"
+    suolo_tessitura: "Medio impasto / Sabbioso"
+    max_yield: 12.0           # t/ha (Capolini)
+    temp_range: [0, 30]       # Ciclo autunno-primaverile
+    ideal_ph: [6.5, 7.8]
+    harvest_months: [2, 3, 4, 5]
+    salinity_tolerance: 2.5
+    note: "Sensibile alle gelate invernali; tollera brezze marine."
+
+  mela_trentino_alto_adige_igp:
+    region: "Trentino-Alto Adige"
+    crop: "apple"
+    crop_display: "Mela della Val di Non / Val Venosta"
+    zona: "Val di Non / Val Venosta / Valle dell'Adige"
+    suolo_tessitura: "Morenico / Ghiaioso (Ben drenato)"
+    max_yield: 65.0           # Alta intensità produttiva (t/ha)
+    temp_range: [-20, 32]
+    ideal_ph: [6.0, 7.0]      # Terreni da sub-acidi a neutri
+    harvest_months: [9, 10, 11]
+    note: "Focus su Golden e Gala; richiede >1200 ore di freddo invernale."
+
+  teroldego_rotaliano_doc:
+    region: "Trentino"
+    crop: "wine_grape_doc"
+    crop_display: "Teroldego Rotaliano (Il Principe)"
+    zona: "Piana Rotaliana (Mezzolombardo/Mezzocorona)"
+    suolo_tessitura: "Ghiaioso-ciottoloso (Ex-alveo fiume Noce)"
+    max_yield: 13.0           # Rese regolate dal disciplinare
+    temp_range: [-15, 35]
+    ideal_ph: [6.5, 7.5]
+    harvest_months: [9, 10]
+    note: "Terreno estremamente drenante; la vite non deve soffrire ristagni."
+
+  muller_thurgau_val_di_cembra:
+    region: "Trentino"
+    crop: "wine_grape_doc"
+    crop_display: "Müller Thurgau (Val di Cembra)"
+    zona: "Val di Cembra (Viticoltura Eroica)"
+    suolo_tessitura: "Sabbioso su Porfido (Roccia acida)"
+    max_yield: 10.0
+    temp_range: [-18, 32]
+    ideal_ph: [5.0, 6.5]      # Tipico terreno acido vulcanico (Porfido)
+    harvest_months: [9]       # Raccolta precoce in quota
+    note: "Pendenze estreme; il pH acido è la sentinella del territorio."
+
+  piccoli_frutti_valsugana:
+    region: "Trentino"
+    crop: "berries"
+    crop_display: "Piccoli Frutti (Valsugana/Altopiano)"
+    zona: "Valsugana / Altopiano di Piné"
+    suolo_tessitura: "Medio impasto / Sub-acido"
+    max_yield: 12.0           # t/ha (Fragole/Lamponi)
+    temp_range: [0, 30]       # Sensibili al calore eccessivo
+    ideal_ph: [5.0, 6.0]      # Esigono acidità (Mirtillo ancora più basso)
+    harvest_months: [6, 7, 8, 9]
+    salinity_tolerance: 1.5   # Fondamentale per fertirrigazione
+    note: "Colture ad alto valore; monitoraggio stretto della salinità."
+
+  gewurztraminer_alto_adige:
+    region: "Alto Adige"
+    crop: "wine_grape_doc"
+    crop_display: "Gewürztraminer (Tramin/Termeno)"
+    zona: "Bassa Atesina / Tramin"
+    suolo_tessitura: "Argillo-calcareo / Ghiaioso"
+    max_yield: 10.0
+    temp_range: [-12, 36]     # Bacino di Bolzano è molto caldo in estate
+    ideal_ph: [7.0, 8.0]
+    harvest_months: [9, 10]
+    note: "Richiede somme termiche elevate per l'aromaticità."
+
+  # --- EMILIA-ROMAGNA: LA FOOD VALLEY D'EUROPA ---
+
+  pomodoro_industria_emiliano:
+    region: "Emilia-Romagna"
+    crop: "tomato"
+    crop_display: "Pomodoro da Industria (Parma/Piacenza)"
+    zona: "Piacenza / Parma (Pianura Alluvionale)"
+    suolo_tessitura: "Franco-limoso (Profondo)"
+    max_yield: 100.0          # Rese industriali altissime (t/ha)
+    temp_range: [5, 40]
+    ideal_ph: [6.0, 7.5]
+    harvest_months: [7, 8, 9]
+    note: "Irrigazione a goccia obbligatoria; filiera conserve."
+
+  grano_tenero_bolognese:
+    region: "Emilia-Romagna"
+    crop: "soft_wheat"
+    crop_display: "Grano Tenero (Ferrara/Bologna)"
+    zona: "Pianura Ferrarese e Bolognese"
+    suolo_tessitura: "Limoso-argilloso (Terre forti)"
+    max_yield: 9.0            # t/ha
+    temp_range: [-15, 36]
+    ideal_ph: [6.5, 8.0]
+    harvest_months: [6, 7]
+    note: "Grani di forza per pasticceria; terreni pesanti."
+
+  pera_emilia_romagna_igp:
+    region: "Emilia-Romagna"
+    crop: "pear"
+    crop_display: "Pera dell'Emilia-Romagna IGP"
+    zona: "Ferrara / Modena / Ravenna"
+    suolo_tessitura: "Franco-argilloso (Fresco)"
+    max_yield: 40.0           # t/ha
+    temp_range: [-18, 35]
+    ideal_ph: [6.5, 7.8]
+    harvest_months: [8, 9]
+    note: "Sensibile a gelate tardive e colpo di fuoco batterico."
+
+  vite_lambrusco_doc:
+    region: "Emilia-Romagna"
+    crop: "wine_grape"
+    crop_display: "Vite Lambrusco (Modena/Reggio)"
+    zona: "Pianura Modenese e Reggiana"
+    suolo_tessitura: "Argilloso alluvionale"
+    max_yield: 18.0           # Rese elevate previste dal disciplinare DOC
+    temp_range: [-12, 38]
+    ideal_ph: [7.0, 8.2]
+    harvest_months: [9]
+    note: "Vigneti spesso meccanizzati; suoli fertili di pianura."
+
+  barbabietola_zucchero_emiliana:
+    region: "Emilia-Romagna"
+    crop: "sugar_beet"
+    crop_display: "Barbabietola da Zucchero"
+    zona: "Ferrara / Ravenna / Bologna"
+    suolo_tessitura: "Franco-argilloso"
+    max_yield: 80.0           # t/ha di radici
+    temp_range: [0, 38]
+    ideal_ph: [6.8, 8.0]      # Esige terreni neutro-basici
+    harvest_months: [8, 9, 10]
+    note: "Coltura da rotazione; fondamentale il controllo del pH."
+
+  # --- TRENTINO-ALTO ADIGE ---
+# --- TOSCANA: IL RINASCIMENTO AGRONOMICO ---
+
+vite_sangiovese_chianti_brunello:
+  region: "Toscana"
+  crop: "wine_grape_docg"
+  crop_display: "Sangiovese (Chianti Classico / Brunello)"
+  zona: "Montalcino / Gaiole / Castellina / Radda"
+  suolo_tessitura: "Galestro (Scisti argillosi) / Alberese (Calcare)"
+  max_yield: 8.5            # Limite rigido per Brunello e Chianti Classico
+  temp_range: [-10, 38]
+  ideal_ph: [7.5, 8.3]      # Terreni basici/calcarei tipici
+  harvest_months: [9, 10]
+  note: "Drenaggio eccellente; il pH elevato favorisce la struttura del tannino."
+
+vite_bolgheri_super_tuscan:
+  region: "Toscana"
+  crop: "wine_grape_doc"
+  crop_display: "Vite Bolgheri / Costa Toscana"
+  zona: "Castagneto Carducci / Bolgheri / Maremma"
+  suolo_tessitura: "Sabbioso-argilloso (Terrazzi marini)"
+  max_yield: 9.0
+  temp_range: [-5, 40]      # Clima mediterraneo più caldo
+  ideal_ph: [6.8, 7.8]
+  harvest_months: [8, 9]    # Vendemmia spesso anticipata (Merlot/Cabernet)
+  salinity_tolerance: 2.8   # Elevata esposizione all'aerosol marino
+  note: "Focus su vitigni internazionali; tollera lo stress termico estivo."
+
+ulivo_toscano_igp_colline:
+  region: "Toscana"
+  crop: "olive"
+  crop_display: "Olivo Toscano IGP"
+  zona: "Colline Fiorentine / Senesi / Aretine"
+  suolo_tessitura: "Medio impasto / Galestro"
+  max_yield: 4.5            # Alta qualità, bassa resa
+  temp_range: [-8, 38]
+  ideal_ph: [6.5, 7.5]
+  harvest_months: [10, 11]  # Raccolta precoce per preservare i polifenoli
+  note: "Varietà Frantoio/Leccino/Moraiolo; sensibile a gelate primaverili."
+
+grano_duro_val_dorcia:
+  region: "Toscana"
+  crop: "durum_wheat"
+  crop_display: "Grano Duro (Val d'Orcia / Crete)"
+  zona: "Pienza / San Quirico / Crete Senesi"
+  suolo_tessitura: "Argilloso pesante (Crete)"
+  max_yield: 5.5            # Rese contenute ma proteine elevate
+  temp_range: [-10, 42]
+  ideal_ph: [7.8, 8.5]      # Suoli molto basici
+  harvest_months: [6, 7]
+  note: "Suoli difficili da lavorare (si crepano in estate); ritenzione idrica elevata."
+
+tabacco_kentucky_valtychiana:
+  region: "Toscana"
+  crop: "tobacco"
+  crop_display: "Tabacco Kentucky (Sigaro Toscano)"
+  zona: "Val di Chiana / Arezzo"
+  suolo_tessitura: "Franco-limoso alluvionale"
+  max_yield: 3.5            # t/ha di foglia secca
+  temp_range: [10, 38]
+  ideal_ph: [6.0, 7.2]
+  harvest_months: [8, 9]
+  note: "Coltura idroesigente; richiede monitoraggio costante dell'umidità suolo."
+
+# --- UMBRIA: IL CUORE VERDE D'ITALIA ---
+
+vite_sagrantino_montefalco_docg:
+  region: "Umbria"
+  crop: "wine_grape_docg"
+  crop_display: "Sagrantino di Montefalco"
+  zona: "Montefalco / Bevagna / Gualdo Cattaneo"
+  suolo_tessitura: "Argillo-limoso calcareo (Terre forti)"
+  max_yield: 8.0            # Disciplinare molto restrittivo
+  temp_range: [-12, 38]
+  ideal_ph: [7.5, 8.5]      # Elevato calcare attivo
+  harvest_months: [10]      # Vendemmia tardiva per maturazione tannica
+  note: "Uno dei vini più ricchi di polifenoli al mondo; esige suoli pesanti."
+
+vite_orvieto_classico:
+  region: "Umbria"
+  crop: "wine_grape_doc"
+  crop_display: "Orvieto Classico (Suoli Vulcanici)"
+  zona: "Orvieto / Rupe / Calanchi"
+  suolo_tessitura: "Tufo vulcanico / Sabbioso"
+  max_yield: 11.0
+  temp_range: [-10, 40]
+  ideal_ph: [6.5, 7.5]
+  harvest_months: [9]
+  note: "Suoli porosi vulcanici; drenaggio naturale estremamente rapido."
+
+lenticchia_castelluccio_igp:
+  region: "Umbria"
+  crop: "legumes"
+  crop_display: "Lenticchia di Castelluccio IGP"
+  zona: "Altopiano di Castelluccio di Norcia (>1400m slm)"
+  suolo_tessitura: "Sciolto / Roccioso (Sulle marne)"
+  max_yield: 1.5            # Resa bassissima ma altissima qualità
+  temp_range: [-20, 25]     # Temperature estive fresche; tollera gelate primaverili
+  ideal_ph: [6.0, 7.5]
+  harvest_months: [7, 8]
+  note: "Fioritura famosa; agricoltura eroica d'alta quota appenninica."
+
+ulivo_umbria_dop:
+  region: "Umbria"
+  crop: "olive"
+  crop_display: "Olivo DOP Umbria (Colli Martani/Assisi)"
+  zona: "Assisi / Spoleto / Trevi / Colli Martani"
+  suolo_tessitura: "Scheletro prevalente (Sulle pendici)"
+  max_yield: 4.5
+  temp_range: [-10, 38]
+  ideal_ph: [6.8, 8.0]
+  harvest_months: [10, 11]
+  note: "Varietà Moraiolo prevalente; oli molto fruttati ed erbacei."
+
+tabacco_alta_valle_tevere:
+  region: "Umbria"
+  crop: "tobacco"
+  crop_display: "Tabacco Bright/Kentucky (Alta Valle Tevere)"
+  zona: "Città di Castello / San Giustino"
+  suolo_tessitura: "Franco-limoso alluvionale"
+  max_yield: 3.8            # t/ha di foglia essiccata
+  temp_range: [10, 38]
+  ideal_ph: [6.0, 7.2]
+  harvest_months: [8, 9]
+  note: "L'Umbria è leader nazionale; richiede irrigazione precisa a luglio."
+
+# --- MARCHE: TRA APPENNINO E ADRIATICO ---
+
+vite_verdicchio_marche:
+  region: "Marche"
+  crop: "wine_grape_docg"
+  crop_display: "Verdicchio (Jesi / Matelica)"
+  zona: "Castelli di Jesi / Matelica (Alte colline)"
+  suolo_tessitura: "Argillo-limoso (Argille azzurre)"
+  max_yield: 10.5
+  temp_range: [-10, 38]
+  ideal_ph: [7.5, 8.2]
+  harvest_months: [9]
+  note: "Vino bianco di grande struttura; i suoli argillosi danno sapidità."
+
+girasole_marche:
+  region: "Marche"
+  crop: "oilseed"
+  crop_display: "Girasole Marchigiano"
+  zona: "Ancona / Macerata / Fermo"
+  suolo_tessitura: "Medio impasto / Argilloso"
+  max_yield: 3.5            # t/ha di granella
+  temp_range: [10, 42]
+  ideal_ph: [6.5, 7.8]
+  harvest_months: [8, 9]
+  note: "Tipica coltura marchigiana non irrigua; soffre ristagni idrici."
+
+grano_duro_marchigiano:
+  region: "Marche"
+  crop: "durum_wheat"
+  crop_display: "Grano Duro per Pasta"
+  zona: "Colline Pesaresi e Picene"
+  suolo_tessitura: "Argilloso (Terre forti)"
+  max_yield: 6.5
+  temp_range: [-5, 40]
+  ideal_ph: [7.5, 8.5]
+  harvest_months: [6, 7]
+  note: "Focus su contenuto proteico; terreni basici calcarei."
+
+ulivo_marche_igp:
+  region: "Marche"
+  crop: "olive"
+  crop_display: "Olivo Marche IGP (Ascolana/Raggiola)"
+  zona: "Tutto il territorio collinare"
+  suolo_tessitura: "Medio impasto / Scheletro"
+  max_yield: 5.0
+  temp_range: [-8, 38]
+  ideal_ph: [6.8, 8.0]
+  harvest_months: [10, 11]
+  note: "Varietà Ascolana Tenera caratteristica; sensibile a gelate invernali."
+
+vite_rosso_conero_docg:
+  region: "Marche"
+  crop: "wine_grape_docg"
+  crop_display: "Rosso Conero (Montepulciano)"
+  zona: "Promontorio del Conero (Ancona)"
+  suolo_tessitura: "Calcareo sedimentario (Marino)"
+  max_yield: 9.0
+  temp_range: [-5, 38]
+  ideal_ph: [7.8, 8.5]      # Suoli molto calcarei a ridosso del mare
+  harvest_months: [10]
+  salinity_tolerance: 3.0
+  note: "Vigne a picco sul mare; il suolo calcareo è dominante."
+
+# --- LAZIO: TERRA VULCANICA E AGRO PONTINO ---
+
+nocciola_romana_dop:
+  region: "Lazio"
+  crop: "hazelnut"
+  crop_display: "Nocciola Romana DOP (Monti Cimini)"
+  zona: "Viterbese / Monti Cimini"
+  suolo_tessitura: "Vulcanico (Tufo e Peperino)"
+  max_yield: 3.5            # t/ha
+  temp_range: [-15, 36]
+  ideal_ph: [6.0, 7.0]      # Terreni vulcanici sub-acidi, ricchi di potassio
+  harvest_months: [8, 9]
+  note: "Coltura leader globale; forte vocazione per industria dolciaria."
+
+kiwi_latina_igp:
+  region: "Lazio"
+  crop: "kiwi"
+  crop_display: "Kiwi di Latina IGP"
+  zona: "Agro Pontino (Latina / Cisterna)"
+  suolo_tessitura: "Franco-sabbioso (Bonifica)"
+  max_yield: 40.0           # Alta produttività
+  temp_range: [-5, 38]      # Sensibile a gelate primaverili (Marzo/Aprile)
+  ideal_ph: [6.0, 7.2]
+  harvest_months: [10, 11]
+  note: "Idroesigente in estate ma zero tolleranza al ristagno idrico invernale."
+
+vite_frascati_docg:
+  region: "Lazio"
+  crop: "wine_grape_docg"
+  crop_display: "Frascati Superiore (Castelli Romani)"
+  zona: "Castelli Romani (Frascati / Grottaferrata)"
+  suolo_tessitura: "Pozzolana (Vulcanico iper-drenante)"
+  max_yield: 11.0
+  temp_range: [-5, 40]
+  ideal_ph: [6.5, 7.5]
+  harvest_months: [9, 10]
+  note: "Suoli leggerissimi e porosi; uve Malvasia e Trebbiano."
+
+carciofo_romanesco_igp:
+  region: "Lazio"
+  crop: "artichoke"
+  crop_display: "Carciofo Romanesco IGP"
+  zona: "Litorale Nord (Cerveteri / Ladispoli)"
+  suolo_tessitura: "Medio impasto / Sabbioso"
+  max_yield: 12.0           # t/ha (Capolini)
+  temp_range: [0, 30]       # Ciclo autunno-primaverile
+  ideal_ph: [6.5, 7.8]
+  harvest_months: [2, 3, 4, 5]
+  salinity_tolerance: 2.5
+  note: "Sensibile alle gelate invernali; tollera brezze marine."
+
+ulivo_sabina_dop:
+  region: "Lazio"
+  crop: "olive"
+  crop_display: "Olio Sabina DOP"
+  zona: "Monti Sabini (Rieti / Roma)"
+  suolo_tessitura: "Scheletro / Calcareo"
+  max_yield: 5.0
+  temp_range: [-10, 38]
+  ideal_ph: [7.0, 8.2]
+  harvest_months: [10, 11]
+  note: "Olivicoltura collinare storica; buona resistenza al freddo."
+
+vite_cesanese_piglio_docg:
+  region: "Lazio"
+  crop: "wine_grape_docg"
+  crop_display: "Cesanese del Piglio (Terre Rosse)"
+  zona: "Ciociaria (Piglio / Serrone / Paliano)"
+  suolo_tessitura: "Argilloso ferruginoso (Terre Rosse)"
+  max_yield: 9.0
+  temp_range: [-8, 38]
+  ideal_ph: [6.5, 7.5]
+  harvest_months: [10]      # Vendemmia spesso tardiva
+  note: "Suoli rossi ricchi di ossidi di ferro; vino di grande estratto."
+
+patata_alto_viterbese_igp:
+  region: "Lazio"
+  crop: "potato"
+  crop_display: "Patata dell'Alto Viterbese IGP"
+  zona: "Grotte di Castro / San Lorenzo / Bolsena"
+  suolo_tessitura: "Vulcanico sciolto (Cenere e Lapilli)"
+  max_yield: 45.0           # Ottime rese su suoli fertili
+  temp_range: [5, 32]
+  ideal_ph: [6.0, 7.0]
+  harvest_months: [7, 8, 9]
+  note: "Coltivata sui bordi del lago di Bolsena; suoli leggeri che facilitano la raccolta."
+
+castagna_vallerano_dop:
+  region: "Lazio"
+  crop: "chestnut"
+  crop_display: "Castagna di Vallerano DOP"
+  zona: "Monti Cimini (Vallerano / Canepina)"
+  suolo_tessitura: "Vulcanico (Tufo rosso)"
+  max_yield: 2.5            # t/ha (Raccolta in guscio)
+  temp_range: [-15, 30]
+  ideal_ph: [5.5, 6.5]      # Esige suoli acidi vulcanici
+  harvest_months: [9, 10]
+  note: "Castagneti secolari d'alta quota; il pH acido è vitale."
+
+# --- ABRUZZO E MOLISE: L'APPENNINO CENTRALE ---
+
+vite_montepulciano_abruzzo:
+  region: "Abruzzo"
+  crop: "wine_grape_doc"
+  crop_display: "Montepulciano d'Abruzzo"
+  zona: "Colline Teramane / Terre dei Vestini / Chieti"
+  suolo_tessitura: "Argillo-calcareo (Terre forti)"
+  max_yield: 14.0           # Disciplinare DOC (molto produttivo)
+  temp_range: [-10, 40]
+  ideal_ph: [7.2, 8.2]
+  harvest_months: [9, 10]
+  note: "Varietà vigorosa; il calcare attivo è fondamentale per l'acidità fissa."
+
+zafferano_aquila_dop:
+  region: "Abruzzo"
+  crop: "saffron"
+  crop_display: "Zafferano dell'Aquila DOP"
+  zona: "Altopiano di Navelli (AQ) - >700m slm"
+  suolo_tessitura: "Sabbioso-ghiaioso (Calcareo)"
+  max_yield: 0.05           # t/ha (Lo zafferano si misura in kg/ha, max 15-20kg)
+  temp_range: [-15, 30]
+  ideal_ph: [7.0, 8.0]
+  harvest_months: [10, 11]  # Raccolta solo tra metà Ottobre e inizio Novembre
+  note: "Coltura preziosissima; richiede drenaggio perfetto e inverni nevosi."
+
+patata_fucino_igp:
+  region: "Abruzzo"
+  crop: "potato"
+  crop_display: "Patata del Fucino IGP"
+  zona: "Conca del Fucino (Avezzano)"
+  suolo_tessitura: "Limoso-argilloso / Torboso (Ex-lago)"
+  max_yield: 50.0           # Rese altissime causa fertilità del suolo
+  temp_range: [0, 32]
+  ideal_ph: [6.5, 7.8]
+  harvest_months: [7, 8, 9]
+  note: "Suoli neri ricchissimi di sostanza organica; falda acquifera superficiale."
+
+ulivo_aprutino_pescarese_dop:
+  region: "Abruzzo"
+  crop: "olive"
+  crop_display: "Olivo Aprutino Pescarese DOP"
+  zona: "Area Vestina (Penne / Loreto Aprutino)"
+  suolo_tessitura: "Medio impasto / Calcareo"
+  max_yield: 5.0
+  temp_range: [-8, 38]
+  ideal_ph: [6.8, 8.0]
+  harvest_months: [10, 11, 12]
+  note: "Varietà Dritta prevalente; altitudine collinare (200-500m)."
+
+vite_tintilia_molise:
+  region: "Molise"
+  crop: "wine_grape_doc"
+  crop_display: "Tintilia del Molise"
+  zona: "Entroterra Molisano (Campobasso / Isernia)"
+  suolo_tessitura: "Argilloso calcareo"
+  max_yield: 8.0            # Varietà poco produttiva, alta qualità
+  temp_range: [-12, 38]
+  ideal_ph: [7.0, 8.2]
+  harvest_months: [9, 10]
+  note: "Vitigno autoctono molisano rustico; resistente alla siccità."
+
+grano_duro_basso_molise:
+  region: "Molise"
+  crop: "durum_wheat"
+  crop_display: "Grano Duro del Basso Molise"
+  zona: "Termoli / Larino / Guglionesi"
+  suolo_tessitura: "Argillo-limoso costiero"
+  max_yield: 7.0            # Buona produttività in collina litoranea
+  temp_range: [-5, 42]      # Elevata tolleranza termica estiva
+  ideal_ph: [7.5, 8.5]
+  harvest_months: [6, 7]
+  note: "Alimentazione filiera pastifici locali; suoli basici."
+
+ulivo_molise_dop:
+  region: "Molise"
+  crop: "olive"
+  crop_display: "Olivo Molise DOP (Gentile di Larino)"
+  zona: "Larino / Colletorto / Casacalenda"
+  suolo_tessitura: "Medio impasto / Calcareo"
+  max_yield: 5.5
+  temp_range: [-8, 40]
+  ideal_ph: [7.0, 8.0]
+  harvest_months: [10, 11]
+  note: "Olio di grande equilibrio; cultivar autoctona Gentile di Larino."
+
+pomodoro_industria_molise:
+  region: "Molise"
+  crop: "tomato"
+  crop_display: "Pomodoro da Industria (Molise)"
+  zona: "Basso Molise (Valli alluvionali)"
+  suolo_tessitura: "Franco-limoso alluvionale"
+  max_yield: 90.0
+  temp_range: [10, 42]
+  ideal_ph: [6.5, 7.5]
+  harvest_months: [8, 9]
+  note: "Gestione irrigua critica; connesso alla filiera del Foggiano."
+
+# --- CAMPANIA: TERRA FELIX E VULCANICA ---
+
   pomodoro_siciliano:
     region: "Sicilia"
     crop: "tomato"
@@ -157,20 +1360,131 @@ regional_presets:
       tolleranza al calore estivo; suoli profondi e ben drenati.
       Varietà tipiche: Datterino, Cherry, Costoluto.
 
-  # --- CAMPANIA ---
-  pomodoro_sanmarzano:
+  # --- CAMPANIA: TERRA FELIX E VULCANICA ---
+
+  pomodoro_sanmarzano_dop:
     region: "Campania"
     crop: "tomato"
     crop_display: "Pomodoro San Marzano DOP"
-    zona: "Agro Nocerino-Sarnese"
-    suolo_tessitura: "Vulcanico (Vesuviano)"
-    max_yield: 50.0
-    temp_range: [0, 40]
+    zona: "Agro Sarnese-Nocerino / Acerra"
+    suolo_tessitura: "Vulcanico (Ceneri e Lapilli)"
+    max_yield: 50.0           # Disciplinare rigido per pomodoro lungo
+    temp_range: [5, 40]
+    ideal_ph: [6.0, 7.0]      # Terreni sub-acidi vulcanici
     harvest_months: [7, 8, 9]
-    ideal_ph: [6.0, 7.0]
-    note: "Pomodoro lungo DOP, coltivazione tradizionale."
+    note: "Allevamento tradizionale a spalliera; esige suoli minerali profondi."
 
-# --- REGOLE BIOLOGICHE PER COLTURA ---
+  vite_aglianico_taurasi_docg:
+    region: "Campania"
+    crop: "wine_grape_docg"
+    crop_display: "Aglianico (Taurasi / Taburno)"
+    zona: "Irpinia / Sannio (Alte colline)"
+    suolo_tessitura: "Argillo-limoso vulcanico"
+    max_yield: 10.0
+    temp_range: [-10, 38]
+    ideal_ph: [6.5, 7.8]
+    harvest_months: [10, 11]  # Vendemmia molto tardiva (Novembre!)
+    note: "Il 'Barolo del Sud'; richiede lunghi tempi di maturazione in pianta."
+
+  limone_sorrento_amalfi_igp:
+    region: "Campania"
+    crop: "citrus"
+    crop_display: "Limone di Sorrento / Amalfi IGP"
+    zona: "Penisola Sorrentina / Costa d'Amalfi"
+    suolo_tessitura: "Terrazzamenti sciolti"
+    max_yield: 35.0
+    temp_range: [2, 38]       # Molto sensibile al freddo (<0°C danno grave)
+    ideal_ph: [6.0, 7.5]
+    harvest_months: [2, 3, 4, 5, 6, 7, 8] # Raccolta quasi tutto l'anno
+    salinity_tolerance: 3.0
+    note: "Coltivazione sotto pergolati protetti; esposto a venti marini."
+
+  mela_annurca_campana_igp:
+    region: "Campania"
+    crop: "apple"
+    crop_display: "Mela Annurca Campana IGP"
+    zona: "Casertano / Beneventano / Flegreo"
+    suolo_tessitura: "Medio impasto / Vulcanico"
+    max_yield: 30.0           # Rese inferiori causa taglia del frutto
+    temp_range: [0, 35]
+    ideal_ph: [6.0, 7.2]
+    harvest_months: [9, 10]
+    note: "Maturazione finale nei 'melai' (a terra); varietà storica meridionale."
+
+  nocciola_giffoni_igp:
+    region: "Campania"
+    crop: "hazelnut"
+    crop_display: "Nocciola di Giffoni IGP"
+    zona: "Monti Picentini (Salerno)"
+    suolo_tessitura: "Vulcanico (Ceneri meteorizzate)"
+    max_yield: 4.0            # t/ha (in guscio)
+    temp_range: [-10, 36]
+    ideal_ph: [6.0, 7.0]
+    harvest_months: [8, 9]
+    note: "Elevata qualità organolettica; esige terreni ricchi di potassio."
+
+  # --- SARDEGNA: TERRA DI VENTO E GRANITO ---
+
+  vite_vermentino_gallura_docg:
+    region: "Sardegna"
+    crop: "wine_grape_docg"
+    crop_display: "Vermentino di Gallura"
+    zona: "Gallura (Sassari) - Suoli Granitici"
+    suolo_tessitura: "Sabbioso (Disfacimento Granitico)"
+    max_yield: 10.0
+    temp_range: [0, 42]
+    ideal_ph: [5.0, 6.5]      # Terreni granitici acidi tipici
+    harvest_months: [8, 9]    # Vendemmia spesso precoce
+    note: "Unica DOCG della Sardegna; richiede terreni poveri e ventosi."
+
+  carciofo_spinoso_sardo_dop:
+    region: "Sardegna"
+    crop: "artichoke"
+    crop_display: "Carciofo Spinoso Sardo DOP"
+    zona: "Campidano / Oristanese / Sulcis"
+    suolo_tessitura: "Medio impasto / Alluvionale"
+    max_yield: 10.0           # t/ha (Capolini)
+    temp_range: [2, 32]       # Sensibile a gelate improvvise
+    ideal_ph: [6.5, 7.8]
+    harvest_months: [11, 12, 1, 2, 3, 4, 5]
+    note: "Coltura invernale simbolo della Sardegna; esige irrigazione di soccorso."
+
+  vite_cannonau_sardegna:
+    region: "Sardegna"
+    crop: "wine_grape_doc"
+    crop_display: "Cannonau di Sardegna"
+    zona: "Ogliastra / Barbagia / Nuorese"
+    suolo_tessitura: "Argilloso / Roccioso / Disfacimento granitico"
+    max_yield: 11.0
+    temp_range: [-5, 45]
+    ideal_ph: [6.5, 8.0]
+    harvest_months: [9, 10]
+    note: "Varietà estremamente rustica e resistente alla siccità."
+
+  riso_sardo_oristano:
+    region: "Sardegna"
+    crop: "rice"
+    crop_display: "Riso di Oristano (Sementi)"
+    zona: "Piana di Oristano (Valle del Tirso)"
+    suolo_tessitura: "Argillo-limoso"
+    max_yield: 8.5
+    temp_range: [10, 42]
+    ideal_ph: [6.0, 7.5]
+    harvest_months: [9, 10]
+    note: "Clima ideale per la produzione di sementi grazie al vento costante."
+
+  pascolo_sardo_ovini:
+    region: "Sardegna"
+    crop: "pasture"
+    crop_display: "Pascolo per Pecorino Romano DOP"
+    zona: "Tutto il territorio regionale"
+    suolo_tessitura: "Vario / Prevalentemente sciolto"
+    max_yield: 15.0           # t/ha di sostanza secca annua
+    temp_range: [-5, 45]
+    ideal_ph: [5.5, 7.5]
+    harvest_months: [1, 2, 3, 4, 5, 10, 11, 12] # Mesi di pascolamento
+    note: "Fondamentale per la filiera lattiero-casearia ovina sarda."
+
 # Consumate da cleaner._apply_agronomic_rules via self.knowledge["crops"].
 crops:
   olive:
@@ -224,6 +1538,13 @@ crops:
     flowering_months: [6, 7]
     frost_danger_months: [4, 5]
     critical_temp_flowering: 38
+
+  maize:
+    t_base: 10.0
+    max_yield: 20.0
+    flowering_months: [7]
+    frost_danger_months: [4, 5]
+    critical_temp_flowering: 35
 
 general:
   min_organic_matter: 1.5
