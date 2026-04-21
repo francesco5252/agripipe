@@ -46,6 +46,10 @@ site/
 # Linting / Formatting
 .ruff_cache/
 
+# ML-Ops artifacts
+mlflow.db
+mlruns/
+
 # Playwright MCP artifacts
 .playwright-mcp/
 
