@@ -24,6 +24,7 @@ from typing import Literal
 import numpy as np
 import pandas as pd
 import yaml
+from pydantic import BaseModel, Field, model_validator
 
 from agripipe.utils.logging_setup import get_logger
 
@@ -33,32 +34,38 @@ ImputationStrategy = Literal["mean", "median", "ffill", "drop", "time"]
 OutlierMethod = Literal["iqr", "zscore", "none"]
 
 
-@dataclass
-class CleanerConfig:
-    """Configurazione del Cleaner. Tutti i campi sono opzionali.
+class CleanerConfig(BaseModel):
+    """Configurazione del Cleaner pilotata da Pydantic. Tutti i campi sono opzionali.
 
     ``numeric_columns`` vuota ⇒ auto-detect delle colonne numeriche al runtime.
     """
 
-    numeric_columns: list[str] = field(default_factory=list)
-    categorical_columns: list[str] = field(default_factory=list)
-    date_columns: list[str] = field(default_factory=list)
-    dedup_keys: list[str] = field(default_factory=list)
+    numeric_columns: list[str] = Field(default_factory=list)
+    categorical_columns: list[str] = Field(default_factory=list)
+    date_columns: list[str] = Field(default_factory=list)
+    dedup_keys: list[str] = Field(default_factory=list)
     missing_strategy: ImputationStrategy = "median"
-    missing_drop_threshold: float = 0.5
+    missing_drop_threshold: float = Field(default=0.5, ge=0.0, le=1.0)
     outlier_method: OutlierMethod = "iqr"
-    outlier_iqr_multiplier: float = 1.5
-    physical_bounds: dict[str, tuple[float, float]] = field(default_factory=dict)
+    outlier_iqr_multiplier: float = Field(default=1.5, gt=0.0)
+    physical_bounds: dict[str, tuple[float, float]] = Field(default_factory=dict)
     auto_unit_conversion: bool = False
     unit_range_heuristic: bool = False
     knowledge_path: str = "configs/agri_knowledge.yaml"
-    max_yield: float | None = None
-    salinity_tolerance: float | None = None
-    harvest_months: list[int] = field(default_factory=list)
+    max_yield: float | None = Field(default=None, ge=0.0)
+    salinity_tolerance: float | None = Field(default=None, ge=0.0)
+    harvest_months: list[int] = Field(default_factory=list)
     soil_texture: str | None = None
     soft_cleaning: bool = False
     calculate_gdd: bool = False
     t_base: float | None = None
+
+    @model_validator(mode="after")
+    def check_physical_bounds(self) -> "CleanerConfig":
+        for col, (lo, hi) in self.physical_bounds.items():
+            if lo > hi:
+                raise ValueError(f"Livello minimo {lo} per '{col}' maggiore del massimo {hi}.")
+        return self
 
 
 @dataclass
