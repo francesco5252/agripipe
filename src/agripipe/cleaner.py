@@ -40,6 +40,8 @@ class CleanerConfig(BaseModel):
     ``numeric_columns`` vuota ⇒ auto-detect delle colonne numeriche al runtime.
     """
 
+    model_config = {"protected_namespaces": ()}
+
     numeric_columns: list[str] = Field(default_factory=list)
     categorical_columns: list[str] = Field(default_factory=list)
     date_columns: list[str] = Field(default_factory=list)

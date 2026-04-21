@@ -48,6 +48,8 @@ _HEADER_HINTS = {
 class RawSchema(BaseModel):
     """Schema minimo richiesto dalla pipeline."""
 
+    model_config = {"protected_namespaces": ()}
+
     required_columns: list[str] = Field(
         default_factory=lambda: ["date", "field_id", "temp", "humidity", "ph", "yield"]
     )
