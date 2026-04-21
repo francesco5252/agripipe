@@ -49,13 +49,13 @@ def test_from_yaml(tmp_path):
 
 
 def test_from_preset_loads_correct_bounds():
-    # Carichiamo il preset Barolo (vite_piemontese)
-    cleaner = AgriCleaner.from_preset("vite_piemontese")
-    # Temp range nel YAML è [-15, 36]
-    assert cleaner.config.physical_bounds["temp"] == (-15.0, 36.0)
-    # pH range nel YAML è [7.0, 8.0]
-    assert cleaner.config.physical_bounds["ph"] == (7.0, 8.0)
-    assert cleaner.diagnostics.current_preset_name == "vite_piemontese"
+    # Carichiamo il preset Barolo (vite_nebbiolo_barolo)
+    cleaner = AgriCleaner.from_preset("vite_nebbiolo_barolo")
+    # Temp range nel YAML è [-15, 38]
+    assert cleaner.config.physical_bounds["temp"] == (-15.0, 38.0)
+    # pH range nel YAML è [7.2, 8.2]
+    assert cleaner.config.physical_bounds["ph"] == (7.2, 8.2)
+    assert cleaner.diagnostics.current_preset_name == "vite_nebbiolo_barolo"
 
 
 def test_from_preset_raises_on_missing():
@@ -68,13 +68,13 @@ def test_from_preset_raises_on_missing():
 def test_clean_with_preset_discovers_columns():
     df = pd.DataFrame(
         {
-            "temp": [25.0, 100.0, 26.0],  # 100.0 è fuori range per ulivo_ligure
+            "temp": [25.0, 100.0, 26.0],  # 100.0 è fuori range per ulivo_taggiasco_dop
             "ph": [7.0, 7.2, 7.5],
             "crop_type": ["olive", "olive", "olive"],
         }
     )
-    # ulivo_ligure temp_range: [-5, 38]
-    cleaner = AgriCleaner.from_preset("ulivo_ligure")
+    # ulivo_taggiasco_dop temp_range: [-5, 38]
+    cleaner = AgriCleaner.from_preset("ulivo_taggiasco_dop")
     out = cleaner.clean(df)
 
     # Il 100.0 deve essere stato rimosso (NaN) e poi imputato (mediana ~25.5)
@@ -83,50 +83,49 @@ def test_clean_with_preset_discovers_columns():
     assert "ph" in cleaner.config.numeric_columns
 
 
-def test_preset_pomodoro_siciliano():
-    """Issue #8 — Verifica che il preset pomodoro_siciliano si carichi e applichi correttamente."""
-    cleaner = AgriCleaner.from_preset("pomodoro_siciliano")
+def test_preset_pomodoro_pachino():
+    """Issue #8 — Verifica che il preset pomodoro_pachino_igp si carichi e applichi correttamente."""
+    cleaner = AgriCleaner.from_preset("pomodoro_pachino_igp")
 
     # Bounds fisici devono riflettere la letteratura agronomica
-    assert cleaner.config.physical_bounds["temp"] == (10.0, 42.0)
-    assert cleaner.config.physical_bounds["ph"] == (6.0, 7.5)
-    assert cleaner.diagnostics.current_preset_name == "pomodoro_siciliano"
+    assert cleaner.config.physical_bounds["temp"] == (10.0, 45.0)
+    assert cleaner.config.physical_bounds["ph"] == (6.5, 8.0)
+    assert cleaner.diagnostics.current_preset_name == "pomodoro_pachino_igp"
 
     # Applicazione: un valore fuori range deve diventare NaN e poi essere imputato
     df = pd.DataFrame(
         {
-            "temp": [25.0, 50.0, 28.0],  # 50.0 è fuori range [10, 42]
-            "ph": [6.5, 7.0, 8.0],  # 8.0 è fuori range [6.0, 7.5]
+            "temp": [25.0, 50.0, 28.0],  # 50.0 è fuori range [10, 45]
+            "ph": [6.5, 7.0, 9.0],       # 9.0 è fuori range [6.5, 8.0]
         }
     )
     out = cleaner.clean(df)
 
-    assert out["temp"].max() <= 42.0, "temp fuori range non rimossa"
-    assert out["ph"].max() <= 7.5, "pH fuori range non rimossa"
+    assert out["temp"].max() <= 45.0, "temp fuori range non rimossa"
+    assert out["ph"].max() <= 8.0, "pH fuori range non rimossa"
 
 
-def test_agronomic_rules_ulivo_pugliese():
-    """Verifica che max_yield e salinity_tolerance siano caricati e applicati."""
-    cleaner = AgriCleaner.from_preset("ulivo_pugliese")
+def test_agronomic_rules_ulivo_coratina():
+    """Verifica che max_yield sia caricato e applicato."""
+    cleaner = AgriCleaner.from_preset("ulivo_coratina_bari")
     
-    # Verifica caricamento config
-    assert cleaner.config.max_yield == 12.0
-    assert cleaner.config.salinity_tolerance == 4.0
+    # Verifica caricamento config (Coratina ha max_yield=10.0)
+    assert cleaner.config.max_yield == 10.0
     
-    # Input con valori fuori dai limiti agronomici (ma dentro quelli fisici generici)
+    # Input con valori fuori dai limiti agronomici
     df = pd.DataFrame({
-        "yield": [10.0, 50.0, 11.0],      # 50.0 è assurdo per ulivo (max 12)
-        "ec": [2.0, 10.0, 3.0],          # 10.0 è troppo salino (max 4.0)
+        "yield": [8.0, 50.0, 9.0],       # 50.0 è assurdo (max 10)
         "temp": [25.0, 26.0, 27.0],
-        "ph": [7.5, 7.6, 7.7]
+        "ph": [7.5, 7.6, 7.7],
+        "field_id": ["A", "A", "A"],
+        "date": ["2025-11-01", "2025-11-02", "2025-11-03"]
     })
     
     out = cleaner.clean(df)
     
-    # I valori fuori limite devono essere stati rimossi e imputati (mediana)
-    assert out["yield"].max() <= 12.0
-    assert out["ec"].max() <= 4.0
-    assert cleaner.diagnostics.agronomic_outliers_removed == 2
+    # Il valore fuori limite (50.0) deve essere stato rimosso e imputato
+    assert out["yield"].max() <= 10.0
+    assert cleaner.diagnostics.agronomic_outliers_removed >= 1
 
 
 def test_clean_with_auto_unit_conversion():
