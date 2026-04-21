@@ -1,7 +1,6 @@
 
 import pandas as pd
-import numpy as np
-from agripipe.cleaner import AgriCleaner, CleanerConfig
+from agripipe.cleaner import AgriCleaner
 
 def test_gdd_and_soft_cleaning():
     """Test delle feature '180 IQ': GDD e Confidence Score."""

@@ -1,7 +1,5 @@
 
 import pandas as pd
-import numpy as np
-import pytest
 from agripipe.cleaner import AgriCleaner
 
 def test_giro_italia_validation():

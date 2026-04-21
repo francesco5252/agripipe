@@ -1,6 +1,5 @@
 
 import pandas as pd
-import pytest
 from agripipe.cleaner import AgriCleaner
 
 def test_stress_piemonte_anomalies():
@@ -40,6 +39,8 @@ def test_stress_piemonte_anomalies():
     cleaner_barolo = AgriCleaner.from_preset("vite_nebbiolo_barolo")
     # Righe originali: 0 (Gennaio)
     out_barolo = cleaner_barolo.clean(df_dirty)
+    # Verifica che out_barolo esista e sia un DataFrame
+    assert isinstance(out_barolo, pd.DataFrame)
     # La resa del Barolo a Gennaio (riga 0) deve essere stata azzerata (NaN) e poi imputata (mediana)
     # Ma dato che è l'unica riga di resa rilevante, guardiamo se il diagnostico l'ha presa
     assert cleaner_barolo.diagnostics.agronomic_outliers_removed >= 1

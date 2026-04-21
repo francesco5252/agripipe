@@ -313,13 +313,16 @@ class AgriCleaner:
             return df
         
         for col in self.config.numeric_columns:
-            if col not in df.columns: continue
+            if col not in df.columns:
+                continue
             s = df[col].dropna()
-            if len(s) < 10: continue
+            if len(s) < 10:
+                continue
             
             if method == "zscore":
                 mean, std = s.mean(), s.std()
-                if std == 0: continue
+                if std == 0:
+                    continue
                 mask = ((df[col] - mean).abs() / std) > 3.0
             else: # iqr
                 q1, q3 = s.quantile([0.25, 0.75])
