@@ -1,5 +1,7 @@
 # AgriPipe: Data-to-Tensor
 
+> 🇬🇧 **[Read this in English →](README.en.md)**
+
 AgriPipe è IL prototipo di una  piattaforma **MLOps** ideata per traghettare i dati agronomici grezzi (provenienti da excel, droni, stazioni meteo o operatori in campo) allo stato di ecosistemi vettoriali blindati (`.pt` PyTorch tensors) per addestramenti previsionali in Deep Learning.
 
 ---

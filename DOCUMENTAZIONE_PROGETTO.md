@@ -1,4 +1,4 @@
-# 📝 Documentazione di Sviluppo — AgriPipe
+# 📝 Documentazione di Progetto — AgriPipe
 
 > Percorso passo-passo seguito per costruire **AgriPipe**: una pipeline riproducibile che porta dati agricoli grezzi da Excel a tensor PyTorch validati.
 >
@@ -478,7 +478,7 @@ agripipe/
 ├── pyproject.toml         # Config progetto + dipendenze
 ├── README.md              # Documentazione utente (IT)
 ├── README.en.md           # Documentazione utente (EN)
-└── DOCUMENTAZIONE_LOG.md  # Questo file
+└── DOCUMENTAZIONE_PROGETTO.md  # Questo file
 ```
 
 ---
