@@ -78,14 +78,12 @@ def _generate_plots(df_before: pd.DataFrame, df_after: pd.DataFrame) -> str:
         plt.close(fig)
         data = base64.b64encode(buf.getbuffer()).decode("ascii")
 
-        html_snippets.append(
-            f"""
+        html_snippets.append(f"""
         <div class="plot-container">
             <h3>Analisi Colonna: {col}</h3>
             <img src="data:image/png;base64,{data}" alt="Grafico {col}">
         </div>
-        """
-        )
+        """)
 
     return "\n".join(html_snippets)
 
