@@ -1,10 +1,5 @@
 # 🌱 AgriPipe
 
-[![CI](https://github.com/francesco5252/agripipe/actions/workflows/ci.yml/badge.svg)](https://github.com/francesco5252/agripipe/actions/workflows/ci.yml)
-[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-
 **From messy agricultural Excel files to validated PyTorch tensors. Three steps, reproducible, traceable.**
 
 > 🇮🇹 Versione italiana: [README.md](README.md)
@@ -159,15 +154,6 @@ Knowing a tool's limits is part of its quality. AgriPipe **does NOT do**:
 
 These exclusions are **intentional**: they keep the pipeline predictable, debuggable, and scientifically verifiable.
 
----
-
-## 🗺️ Roadmap & contributing
-
-Where AgriPipe is heading: [`ROADMAP.md`](ROADMAP.md) — 3-horizon vision (0-3 months, 3-12 months, 12+ months).
-
-Want to contribute? Actionable tasks are the [good first issues](https://github.com/francesco5252/agripipe/labels/good-first-issue). For local development setup see [`docs/contributing.md`](docs/contributing.md).
-
----
 
 ## 📄 License
 
