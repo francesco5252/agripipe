@@ -54,13 +54,13 @@ It is an exact `.zip` that you can ship to model development with the following 
 Behind the friendly interface, Agripipe implements an enterprise architecture rigorously controlled by Pydantic:
 
 * **Engine I: Loader (`src/agripipe/loader.py`)**
-  The ingestion demon. It leverages fuzzy matching and deep lexical intelligence to recognize synonyms (e.g., if the file reads `data_raccolta`, the Loader internally coerces the column to `date`). It handles cache hashing.
+  The ingestion demon. It leverages fuzzy matching and deep lexical intelligence to recognize synonyms (e.g., if the file reads `data_raccolta`, the Loader internally coerces the column to `date`). It supports **batch loading** from entire directories (`--input-dir`) and **automatic SI unit conversion** (Fahrenheit → Celsius, inch → mm, lb/acre → kg/ha) via the `--auto-units` flag. It handles cache hashing.
 
 * **Engine II: Cleaner (`src/agripipe/cleaner.py` / `transformers.py`)**
-  It is the statistical colossus disassembled into a scikit-learn pipeline. Under the hood there are **11 decoupled serial modules** ("Transformers"), in formal order: Date coercion conversion, Auto-Unit conversion, categorical imputation based on time series sortings per crop, `pydantic` bound checker on physical scales of pH/Temp/Hum. It returns the sanitized and ready DataFrame. It injects the dynamic computation of Accumulated Growing Degree Days (GDD) if the biological base is set.
+  It is the statistical colossus disassembled into a scikit-learn pipeline. Under the hood there are **11 decoupled serial modules** ("Transformers"), in formal order: date coercion, Auto-Unit conversion, `pydantic` bound checker on physical scales of pH/Temp/Hum, outlier detection (IQR or Z-score), numeric imputation (`median` / `mean` / `ffill` / time interpolation), categorical imputation via mode, deduplication. It returns the sanitized and ready DataFrame. It injects the dynamic computation of Accumulated Growing Degree Days (GDD) if the biological base is set.
 
 * **Engine III: Tensorizer (`src/agripipe/tensorizer.py` & `export.py`)**
-  The hinge between Pandas Analytics and PyTorch AI. It breaks down and replaces the categorical string/integer pipeline into normalized matrices. It scales everything by encapsulating the `StandardScaler` or `RobustScaler` model. The generated instance is an encapsulated and safely exportable module.
+  The hinge between Pandas Analytics and PyTorch AI. It breaks down and replaces the categorical string/integer pipeline into normalized matrices. It scales everything by encapsulating the `StandardScaler` or `RobustScaler` model. The generated instance is an encapsulated and safely exportable module. After tensorization, `tracking.py` computes a **safety benchmark** (Ridge Regression baseline) with optional **MLflow** logging: if the baseline predicts nothing, the problem is in the data, not in the model.
 
 ---
 
